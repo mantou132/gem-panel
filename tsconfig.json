@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "outDir": "./",
+    "declaration": true,
+    "declarationMap": true,
+    "alwaysStrict": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "sourceMap": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "target": "es6",
+    "skipLibCheck": true,
+    "lib": ["es2020", "dom"]
+  },
+  "include": ["src"],
+  "exclude": []
+}
