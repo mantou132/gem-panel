@@ -10,3 +10,8 @@ export function getNewFocusElementIndex(arr: any[], currentFocusIndex: number, d
   }
   return currentFocusIndex - 1;
 }
+
+export function isEqualArray(a: any[], b: any[]) {
+  if (a.length !== b.length) return false;
+  return a.every((e, index) => e === b[index]);
+}

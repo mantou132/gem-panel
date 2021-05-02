@@ -1,5 +1,5 @@
 import { TemplateResult, html } from '@mantou/gem';
-import { getNewFocusElementIndex } from './utils';
+import { getNewFocusElementIndex, isEqualArray } from './utils';
 
 type PannelContent = TemplateResult | string;
 
@@ -126,11 +126,12 @@ export class Config implements ConfigOptional {
   #rows: number[];
   #columns: number[];
 
-  #findAreas = (window: Window) => {
+  #findAreas = (window: Window | string) => {
+    const areaName = typeof window === 'string' ? window : window.gridArea;
     const areas: [number, number][] = [];
     this.#areas.forEach((row, y) => {
       row.forEach((area, x) => {
-        if (area === window.gridArea) {
+        if (area === areaName) {
           areas.push([x, y]);
         }
       });
@@ -138,11 +139,59 @@ export class Config implements ConfigOptional {
     return areas;
   };
 
+  #findAreasBoundary = (areas: [number, number][]) => {
+    const rows = [...new Set(areas.map((area) => area[1]))];
+    const minRow = Math.min(...rows);
+    const maxRow = Math.max(...rows);
+    const columns = [...new Set(areas.map((area) => area[0]))];
+    const minColumn = Math.min(...columns);
+    const maxColumn = Math.max(...columns);
+    return { minRow, maxRow, minColumn, maxColumn, rows, columns };
+  };
+
   #parseAreas = (gridTemplateAreas: string) => {
     this.#areas = gridTemplateAreas
       .split(/\s*["'\n]/)
-      .filter((e) => e !== '')
+      .filter((e) => e.trim() !== '')
       .map((e) => e.split(/\s+/));
+  };
+
+  #stringifyGridTemplateAreas = () => {
+    this.gridTemplateAreas = this.#areas.map((row) => `"${row.join(' ')}"`).join(' ');
+  };
+
+  #optimizationAreas = () => {
+    const optimizationRow = () => {
+      for (let i = 0; i < this.#areas.length - 1; i++) {
+        if (isEqualArray(this.#areas[i], this.#areas[i + 1])) {
+          this.#areas.splice(i, 1);
+          const deleteRows = this.#rows.splice(i, 2);
+          const mergeRow = deleteRows.reduce((p, c) => p + c);
+          this.#rows.splice(i, 0, mergeRow);
+          optimizationRow();
+          break;
+        }
+      }
+    };
+    optimizationRow();
+
+    const optimizationColumn = () => {
+      for (let i = 0; i < this.#areas[0].length - 1; i++) {
+        const currentCol = this.#areas.map((row) => row[i]);
+        const nextCol = this.#areas.map((row) => row[i + 1]);
+        if (isEqualArray(currentCol, nextCol)) {
+          this.#areas.forEach((row) => row.splice(i, 1));
+          const deleteColumns = this.#columns.splice(i, 2);
+          const mergeColumn = deleteColumns.reduce((p, c) => p + c);
+          this.#columns.splice(i, 0, mergeColumn);
+          break;
+        }
+      }
+    };
+    optimizationColumn();
+    this.#stringifyGridTemplateAreas();
+    this.#stringifyGridTemplateRows();
+    this.#stringifyGridTemplateColumns();
   };
 
   #parseRows = (gridTemplateRows: string) => {
@@ -160,6 +209,14 @@ export class Config implements ConfigOptional {
       .map(parseFloat);
 
   #stringifyGridTemplate = (arr: number[]) => arr.map((e) => `${e}fr`).join(' ');
+
+  #stringifyGridTemplateRows = () => {
+    this.gridTemplateRows = this.#stringifyGridTemplate(this.#rows);
+  };
+
+  #stringifyGridTemplateColumns = () => {
+    this.gridTemplateColumns = this.#stringifyGridTemplate(this.#columns);
+  };
 
   static parse(obj: any) {
     const {
@@ -196,28 +253,68 @@ export class Config implements ConfigOptional {
     this.panels = panels;
   }
 
+  removeWindow(window: Window) {
+    const index = this.windows.findIndex((e) => e === window);
+    this.windows.splice(index, 1);
+    this.panels.push(...window.panels);
+    const areas = this.#findAreas(window);
+    const { minRow, maxRow, minColumn, maxColumn, rows, columns } = this.#findAreasBoundary(areas);
+    const topAreas = [...new Set(columns.map((column) => this.#areas[minRow - 1]?.[column]).filter((e) => !!e))];
+    const leftAreas = [...new Set(rows.map((row) => this.#areas[row][minColumn - 1]).filter((e) => !!e))];
+    const rightAreas = [...new Set(rows.map((row) => this.#areas[row][maxColumn + 1]).filter((e) => !!e))];
+    const bottomAreas = [...new Set(columns.map((column) => this.#areas[maxRow + 1]?.[column]).filter((e) => !!e))];
+    const predicateCol = (area: string) => {
+      const areas = this.#findAreas(area);
+      const boundary = this.#findAreasBoundary(areas);
+      return boundary.minColumn >= minColumn && boundary.maxColumn <= maxColumn;
+    };
+    const predicateRow = (area: string) => {
+      const areas = this.#findAreas(area);
+      const boundary = this.#findAreasBoundary(areas);
+      return boundary.minRow >= minRow && boundary.maxRow <= maxRow;
+    };
+    if (topAreas.length && topAreas.every(predicateCol)) {
+      areas.forEach(([x, y]) => {
+        this.#areas[y][x] = this.#areas[minRow - 1][x];
+      });
+    } else if (leftAreas.length && leftAreas.every(predicateRow)) {
+      areas.forEach(([x, y]) => {
+        this.#areas[y][x] = this.#areas[y][minColumn - 1];
+      });
+    } else if (rightAreas.length && rightAreas.every(predicateRow)) {
+      areas.forEach(([x, y]) => {
+        this.#areas[y][x] = this.#areas[y][maxColumn + 1];
+      });
+    } else if (bottomAreas.length && bottomAreas.every(predicateCol)) {
+      areas.forEach(([x, y]) => {
+        this.#areas[y][x] = this.#areas[maxRow + 1][x];
+      });
+    }
+    this.#optimizationAreas();
+  }
+
   closePanel(window: Window, panel: Panel) {
     const panelIndex = window.panels.findIndex((e) => e === panel);
     const closerIndex = getNewFocusElementIndex(window.panels, window.current || 0, panelIndex);
-    if (closerIndex >= 0) {
-      window.current = closerIndex;
-    } else {
-      // TODO: remove window
-    }
     window.panels.splice(panelIndex, 1);
     this.panels.push(panel);
+    if (closerIndex >= 0) {
+      window.changeCurrent(closerIndex);
+    } else {
+      this.removeWindow(window);
+    }
   }
 
   moveHAxis(axisIndex: number, fr: number) {
     this.#rows[axisIndex - 1] += fr;
     this.#rows[axisIndex] -= fr;
-    this.gridTemplateRows = this.#stringifyGridTemplate(this.#rows);
+    this.#stringifyGridTemplateRows();
   }
 
   moveVAxis(axisIndex: number, fr: number) {
     this.#columns[axisIndex - 1] += fr;
     this.#columns[axisIndex] -= fr;
-    this.gridTemplateColumns = this.#stringifyGridTemplate(this.#columns);
+    this.#stringifyGridTemplateColumns();
   }
 
   findHAxis(window: Window) {
