@@ -2,7 +2,7 @@ import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
-import { Config, Panel, Window } from '../lib/config';
+import { Panel, Window } from '../lib/config';
 import {
   cancelHandleWindow,
   dropHandleWindow,
@@ -41,7 +41,6 @@ type State = {
 @customElement('gem-panel-window')
 @connectStore(store)
 export class GemPanelWindowElement extends GemElement<State> {
-  config: Config;
   window: Window;
 
   state: State = {
@@ -79,7 +78,7 @@ export class GemPanelWindowElement extends GemElement<State> {
       clearTimeout(store.windowPanTimer);
       this.setState({ clientX: evt.clientX, clientY: evt.clientY });
       const [x, y] = [evt.clientX - clientX, evt.clientY - clientY];
-      updateWindowPosition({ config: this.config, window: independentWindow }, [x, y]);
+      updateWindowPosition({ window: independentWindow }, [x, y]);
       setWindowPanTimeout(this, independentWindow, [evt.clientX, evt.clientY]);
       if (distance(x, y) > 4) {
         cancelHandleWindow();
@@ -91,11 +90,18 @@ export class GemPanelWindowElement extends GemElement<State> {
     // first move
     if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < 4) return;
     if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > 10) {
+      const { width, height } = this.getBoundingClientRect();
+      const independentWindow = independentPanel(this, panel, [
+        evt.clientX - offsetX,
+        evt.clientY - offsetY,
+        width,
+        height,
+      ]);
       // enter panel move mode
       this.setState({
         panel: null,
         move: false,
-        independentWindow: independentPanel(this, panel, [evt.clientX - offsetX, evt.clientY - offsetY]),
+        independentWindow,
       });
     } else {
       this.setState({ move: true, clientX: evt.clientX, clientY: evt.clientY });
@@ -111,7 +117,7 @@ export class GemPanelWindowElement extends GemElement<State> {
     const { independentWindow } = this.state;
     setTimeout(() => {
       if (independentWindow) {
-        dropHandleWindow({ config: this.config, window: independentWindow });
+        dropHandleWindow({ window: independentWindow });
       }
       this.setState({ panel: null, move: false, independentWindow: null });
     });
@@ -274,7 +280,6 @@ export class GemPanelWindowElement extends GemElement<State> {
                   ${index === current ? 'active' : ''}
                   title
                 `}
-                .config=${this.config}
                 .window=${this.window}
                 .panel=${p}
                 @click=${() => this.#clickHandle(index)}
@@ -291,7 +296,6 @@ export class GemPanelWindowElement extends GemElement<State> {
           ? html`
               <gem-panel-title
                 class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
-                .config=${this.config}
                 .window=${this.window}
                 .panel=${panel}
               >

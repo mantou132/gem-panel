@@ -1,17 +1,17 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
-import { Config, Panel, Window } from '../lib/config';
+import { Panel, Window } from '../lib/config';
 import { closePanel, store } from '../store';
 
 @customElement('gem-panel-title')
 @connectStore(store)
 export class GemPanelTitleElement extends GemElement {
-  config: Config;
   window: Window;
   panel: Panel;
 
   #closeHandle = (evt: Event) => {
+    const { window, panel } = this;
     evt.stopPropagation();
-    closePanel(this);
+    closePanel({ window, panel });
   };
 
   render = () => {

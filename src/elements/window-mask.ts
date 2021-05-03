@@ -1,6 +1,5 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { WINDOW_BORDER } from '../const';
-import { Config, Panel, Window } from '../lib/config';
 import { store } from '../store';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
@@ -10,10 +9,6 @@ export type HoverWindowPosition = typeof sides[number] | 'center';
 @customElement('gem-panel-mask')
 @connectStore(store)
 export class GemPanelMaskElement extends GemElement {
-  config: Config;
-  window: Window;
-  panel: Panel;
-
   render = () => {
     return html`
       <style>

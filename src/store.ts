@@ -6,25 +6,29 @@ import { Config, Panel, Window } from './lib/config';
 import { detectPosition } from './lib/utils';
 
 type AppStore = {
+  config: Config;
   windowPanTimer: number;
   hoverWindow: null | Window;
   panWindow: null | Window;
   hoverWindowPosition: HoverWindowPosition;
 };
-type WindowConfig = { config: Config; window: Window };
+type WindowConfig = { window: Window };
 type PanelConfig = WindowConfig & { panel: Panel };
 
 export const store = createStore<AppStore>({
+  config: new Config(),
   windowPanTimer: 0,
   hoverWindow: null,
   hoverWindowPosition: 'center',
   panWindow: null,
 });
 
-export function independentPanel(ele: GemPanelWindowElement, panel: Panel, [x, y]: [number, number]) {
-  const { config, window } = ele;
-  const { width, height } = ele.getBoundingClientRect();
-  const newWindow = config.createIndependentWindow(window, panel, [x, y, width, height]);
+export function updateConfig(config: Config) {
+  updateStore(store, { config });
+}
+
+export function independentPanel({ window }: WindowConfig, panel: Panel, rect: [number, number, number, number]) {
+  const newWindow = store.config.createIndependentWindow(window, panel, rect);
   updateStore(store, {});
   return newWindow;
 }
@@ -61,13 +65,13 @@ export function cancelHandleWindow() {
   updateStore(store, { hoverWindow: null, panWindow: null });
 }
 
-export function dropHandleWindow({ config, window }: WindowConfig) {
+export function dropHandleWindow({ window }: WindowConfig) {
   clearTimeout(store.windowPanTimer);
   if (store.hoverWindow) {
     if (store.hoverWindowPosition === 'center') {
-      config.mergeWindow(window, store.hoverWindow);
+      store.config.mergeWindow(window, store.hoverWindow);
     } else {
-      config.createWindow(window, store.hoverWindowPosition);
+      store.config.createWindow(window, store.hoverWindowPosition);
     }
     cancelHandleWindow();
   }
@@ -83,27 +87,27 @@ export function updatePanelSort({ window }: WindowConfig, p1: Panel, p2: Panel) 
   updateStore(store, {});
 }
 
-export function updateWindowPosition({ config, window }: WindowConfig, movement: [number, number]) {
-  config.moveWindowPosition(window, movement);
+export function updateWindowPosition({ window }: WindowConfig, movement: [number, number]) {
+  store.config.moveWindowPosition(window, movement);
   updateStore(store, {});
 }
 
-export function updateWindowZIndex({ config, window }: WindowConfig) {
-  config.focusWindow(window);
+export function updateWindowZIndex({ window }: WindowConfig) {
+  store.config.focusWindow(window);
   updateStore(store, {});
 }
 
-export function updateWindowType({ config, window }: WindowConfig, { x, y, width, height }: DOMRect) {
-  config.removeWindow(window, [x, y, width, height]);
+export function updateWindowType({ window }: WindowConfig, { x, y, width, height }: DOMRect) {
+  store.config.removeWindow(window, [x, y, width, height]);
   updateStore(store, {});
 }
 
-export function closePanel({ config, window, panel }: PanelConfig) {
-  config.closePanel(window, panel);
+export function closePanel({ window, panel }: PanelConfig) {
+  store.config.closePanel(window, panel);
   updateStore(store, {});
 }
 
-export function moveSide({ config, window }: WindowConfig, side: Side, movmentPercentage: [number, number]) {
-  config.moveSide(window, side, movmentPercentage);
+export function moveSide({ window }: WindowConfig, side: Side, movmentPercentage: [number, number]) {
+  store.config.moveSide(window, side, movmentPercentage);
   updateStore(store, {});
 }

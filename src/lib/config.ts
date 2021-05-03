@@ -38,9 +38,8 @@ export class Window implements WindowOptional {
   dimension?: [number, number];
   panels: Panel[];
 
-  static parse(obj: Window) {
-    const { gridArea, current, panels = [] } = obj;
-    return new Window(panels.map(Panel.parse), { gridArea, current });
+  static parse({ gridArea, current, panels = [], position, dimension }: Window) {
+    return new Window(panels.map(Panel.parse), { gridArea, current, position, dimension });
   }
 
   constructor(panels: Panel[] = [], optional: WindowOptional = {}) {
@@ -241,14 +240,10 @@ export class Config implements ConfigOptional {
     this.gridTemplateColumns = this.#stringifyGridTemplate(this.#columns);
   };
 
-  static parse(obj: any) {
-    const {
-      gridTemplateAreas,
-      gridTemplateRows,
-      gridTemplateColumns,
-      windows = [],
-      panels = [],
-    } = obj as Partial<Config>;
+  static parse(str: string) {
+    const obj = JSON.parse(str) as Partial<Config> | null;
+    if (!obj) return;
+    const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns, windows = [], panels = [] } = obj;
     return new Config(windows.map(Window.parse), panels.map(Panel.parse), {
       gridTemplateAreas,
       gridTemplateRows,
