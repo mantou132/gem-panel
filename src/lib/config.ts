@@ -1,5 +1,5 @@
 import { TemplateResult, html } from '@mantou/gem';
-import { getNewFocusElementIndex, isEqualArray } from './utils';
+import { getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
 type PannelContent = TemplateResult | string;
 
@@ -276,7 +276,7 @@ export class Config implements ConfigOptional {
     this.panels = panels;
   }
 
-  changeWindowPosition(window: Window, x: number, y: number) {
+  moveWindowPosition(window: Window, [x, y]: [number, number]) {
     const [originX = 0, originY = 0] = window.position || [];
     window.position = [originX + x, originY + y];
   }
@@ -293,8 +293,7 @@ export class Config implements ConfigOptional {
       window.dimension = [w, h];
       this.focusWindow(window);
     } else {
-      const index = this.windows.findIndex((e) => e === window);
-      this.windows.splice(index, 1);
+      removeItem(this.windows, window);
     }
     this.panels.push(...window.panels);
     const areas = this.#findAreas(window);
@@ -334,11 +333,18 @@ export class Config implements ConfigOptional {
   }
 
   mergeWindow(window: Window, target: Window) {
-    const index = this.windows.findIndex((e) => e === window);
-    this.windows.splice(index, 1);
+    removeItem(this.windows, window);
     const targetLen = target.panels.length;
     target.panels.push(...window.panels);
     target.changeCurrent(targetLen + (window.current || 0));
+  }
+
+  createIndependentWindow(window: Window, panel: Panel, [x, y, w, h]: [number, number, number, number]) {
+    const newWindow = new Window([panel], { position: [x, y], dimension: [w, h] });
+    this.focusWindow(newWindow);
+    this.windows.push(newWindow);
+    this.closePanel(window, panel);
+    return newWindow;
   }
 
   closePanel(window: Window, panel: Panel) {

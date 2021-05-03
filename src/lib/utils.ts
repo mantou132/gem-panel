@@ -19,3 +19,8 @@ export function isEqualArray(a: any[], b: any[]) {
 export function distance(x: number, y: number) {
   return Math.sqrt(x ** 2 + y ** 2);
 }
+
+export function removeItem(arr: any[], item: any) {
+  const index = arr.findIndex((e) => e === item);
+  arr.splice(index, 1);
+}
