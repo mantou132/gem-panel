@@ -16,6 +16,24 @@ export function updatePanelSort({ window }: GemPanelWindowElement, p1: Panel, p2
   updateStore(store, {});
 }
 
+export function updateWindowPosition({ config, window }: GemPanelWindowElement, x: number, y: number) {
+  config.changeWindowPosition(window, x, y);
+  updateStore(store, {});
+}
+
+export function updateWindowZIndex({ config, window }: GemPanelWindowElement) {
+  config.focusWindow(window);
+  updateStore(store, {});
+}
+
+export function updateWindowType(
+  { config, window }: GemPanelWindowElement,
+  position: [number, number, number, number],
+) {
+  config.removeWindow(window, position);
+  updateStore(store, {});
+}
+
 export function closePanel({ config, window, panel }: GemPanelTitleElement) {
   config.closePanel(window, panel);
   updateStore(store, {});

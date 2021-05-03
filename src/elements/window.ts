@@ -3,7 +3,15 @@ import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
 import { Config, Panel, Window } from '../lib/config';
-import { moveSide, store, updateCurrentPanel, updatePanelSort } from '../store';
+import {
+  moveSide,
+  store,
+  updateCurrentPanel,
+  updatePanelSort,
+  updateWindowPosition,
+  updateWindowType,
+  updateWindowZIndex,
+} from '../store';
 
 import './panel-title';
 import { GemPanelTitleElement } from './panel-title';
@@ -40,7 +48,8 @@ export class GemPanelWindowElement extends GemElement<State> {
     clientY: 0,
   };
 
-  #onStart = (panel: Panel, evt: PointerEvent) => {
+  #onMoveTitleStart = (panel: Panel, evt: PointerEvent) => {
+    evt.stopPropagation();
     const target = evt.currentTarget as HTMLElement;
     target.setPointerCapture(evt.pointerId);
     const { x, y } = target.getBoundingClientRect();
@@ -56,7 +65,8 @@ export class GemPanelWindowElement extends GemElement<State> {
     });
   };
 
-  #onMove = (evt: PointerEvent) => {
+  #onMoveTitle = (evt: PointerEvent) => {
+    evt.stopPropagation();
     const { panel, move, offsetY, parentOffsetY, clientX, clientY } = this.state;
     if (!panel) return;
     // first move
@@ -68,7 +78,8 @@ export class GemPanelWindowElement extends GemElement<State> {
     }
   };
 
-  #onEnd = () => {
+  #onMoveTitleEnd = (evt: PointerEvent) => {
+    evt.stopPropagation();
     const { panel } = this.state;
     if (!panel) return;
     setTimeout(() => {
@@ -83,16 +94,47 @@ export class GemPanelWindowElement extends GemElement<State> {
     }
   };
 
+  #onHeaderPan = ({ detail }: CustomEvent<PanEventDetail>) => {
+    if (this.isGrid) {
+      const { x, y, width, height } = this.getBoundingClientRect();
+      updateWindowType(this, [x, y, width, height]);
+    } else {
+      updateWindowPosition(this, detail.x, detail.y);
+    }
+  };
+
+  get isGrid() {
+    const { position, dimension } = this.window;
+    return !position && !dimension;
+  }
+
+  mounted = () => {
+    this.addEventListener('pointerdown', () => {
+      if (!this.isGrid) {
+        updateWindowZIndex(this);
+      }
+    });
+  };
+
   render = () => {
-    const { panels, gridArea, current = 0 } = this.window;
+    const isGrid = this.isGrid;
+    const { panels, gridArea, current = 0, position, dimension, zIndex } = this.window;
     const { panel, move, offsetX, clientX, parentOffsetX } = this.state;
     return html`
       <style>
         :host {
-          position: relative;
           display: flex;
           flex-direction: column;
+          background: white;
+          position: ${isGrid ? 'relative' : 'fixed'};
+          left: ${position?.[0]}px;
+          top: ${position?.[1]}px;
+          width: ${dimension?.[0]}px;
+          height: ${dimension?.[1]}px;
           grid-area: ${gridArea};
+          z-index: ${isGrid ? 0 : zIndex};
+          overflow: ${isGrid ? 'visible' : 'hidden'};
+          box-shadow: ${isGrid ? 'none' : '0px 1px 3px rgba(0, 0, 0, .4)'};
         }
         .header {
           overflow: hidden;
@@ -165,15 +207,17 @@ export class GemPanelWindowElement extends GemElement<State> {
           right: 100%;
         }
       </style>
-      ${sides.map(
-        (dir) => html`
-          <gem-gesture
-            class=${dir}
-            @pan=${({ detail }: CustomEvent<PanEventDetail>) => moveSide(this, dir, detail)}
-          ></gem-gesture>
-        `,
-      )}
-      <div class="header">
+      ${isGrid
+        ? sides.map(
+            (dir) => html`
+              <gem-gesture
+                class=${dir}
+                @pan=${({ detail }: CustomEvent<PanEventDetail>) => moveSide(this, dir, detail)}
+              ></gem-gesture>
+            `,
+          )
+        : ''}
+      <gem-gesture class="header" @pan=${this.#onHeaderPan}>
         ${panels.map(
           (p, index) =>
             html`
@@ -183,10 +227,10 @@ export class GemPanelWindowElement extends GemElement<State> {
                 .window=${this.window}
                 .panel=${p}
                 @click=${() => this.#clickHandle(index)}
-                @pointerdown=${(evt: PointerEvent) => this.#onStart(p, evt)}
-                @pointermove=${this.#onMove}
-                @pointerup=${this.#onEnd}
-                @pointercancel=${this.#onEnd}
+                @pointerdown=${(evt: PointerEvent) => this.#onMoveTitleStart(p, evt)}
+                @pointermove=${this.#onMoveTitle}
+                @pointerup=${this.#onMoveTitleEnd}
+                @pointercancel=${this.#onMoveTitleEnd}
               >
                 ${p.title}
               </gem-panel-title>
@@ -204,7 +248,7 @@ export class GemPanelWindowElement extends GemElement<State> {
               </gem-panel-title>
             `
           : ''}
-      </div>
+      </gem-gesture>
       <div class="content">${panels[current].content}</div>
     `;
   };

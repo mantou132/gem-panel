@@ -24,11 +24,17 @@ export class Panel {
 interface WindowOptional {
   gridArea?: string;
   current?: number;
+  position?: [number, number];
+  zIndex?: number;
+  dimension?: [number, number];
 }
 
 export class Window implements WindowOptional {
   gridArea?: string;
   current?: number;
+  position?: [number, number];
+  zIndex?: number;
+  dimension?: [number, number];
   panels: Panel[];
 
   static parse(obj: Window) {
@@ -37,10 +43,15 @@ export class Window implements WindowOptional {
   }
 
   constructor(panels: Panel[] = [], optional: WindowOptional = {}) {
-    const { gridArea = '', current = 0 } = optional;
+    const { gridArea = '', current = 0, position, dimension, zIndex = 1 } = optional;
     this.gridArea = gridArea;
     this.current = current;
     this.panels = panels;
+    this.zIndex = zIndex;
+    if (position || dimension) {
+      this.position = position || [100, 100];
+      this.dimension = dimension || [300, 150];
+    }
   }
 
   changeCurrent(index: number) {
@@ -244,8 +255,9 @@ export class Config implements ConfigOptional {
     });
   }
 
-  constructor(windows: Window[] = [], panels: Panel[] = [], optional: ConfigOptional = {}) {
+  constructor(allWindows: Window[] = [], panels: Panel[] = [], optional: ConfigOptional = {}) {
     const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns } = optional;
+    const windows = allWindows.filter(({ position, dimension }) => !position && !dimension);
     const dl = defaultLayout[windows.length - 1] || defaultLayout[0];
     this.gridTemplateAreas = gridTemplateAreas || dl.gridTemplateAreas;
     this.#parseAreas(this.gridTemplateAreas!);
@@ -260,13 +272,30 @@ export class Config implements ConfigOptional {
       }
     });
 
-    this.windows = windows;
+    this.windows = allWindows;
     this.panels = panels;
   }
 
-  removeWindow(window: Window) {
-    const index = this.windows.findIndex((e) => e === window);
-    this.windows.splice(index, 1);
+  changeWindowPosition(window: Window, x: number, y: number) {
+    const [originX = 0, originY = 0] = window.position || [];
+    window.position = [originX + x, originY + y];
+  }
+
+  focusWindow(window: Window) {
+    const maxZIndex = Math.max(...this.windows.map((w) => w.zIndex || 0));
+    window.zIndex = maxZIndex + 1;
+  }
+
+  removeWindow(window: Window, rect?: [number, number, number, number]) {
+    if (rect) {
+      const [x, y, w, h] = rect;
+      window.position = [x, y];
+      window.dimension = [w, h];
+      this.focusWindow(window);
+    } else {
+      const index = this.windows.findIndex((e) => e === window);
+      this.windows.splice(index, 1);
+    }
     this.panels.push(...window.panels);
     const areas = this.#findAreas(window);
     const { minRow, maxRow, minColumn, maxColumn, rows, columns } = this.#findAreasBoundary(areas);
