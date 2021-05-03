@@ -1,12 +1,25 @@
-import { html, GemElement, customElement, property, connectStore, boolattribute, attribute } from '@mantou/gem';
-import { Config } from '../lib/config';
+import {
+  html,
+  GemElement,
+  customElement,
+  property,
+  connectStore,
+  boolattribute,
+  attribute,
+  emitter,
+  Emitter,
+} from '@mantou/gem';
+import { Config, Panel } from '../lib/config';
 import { openHiddenPanel, store, updateConfig } from '../store';
 
 import './window';
 
+export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[] };
+
 /**
  * @attr cache
  * @attr cache-version
+ * @event panel-change
  */
 @customElement('gem-panel')
 @connectStore(store)
@@ -14,6 +27,7 @@ export class GemPanelElement extends GemElement {
   @property config: Config;
   @boolattribute cache: boolean;
   @attribute cacheVersion: string;
+  @emitter panelChange: Emitter<PanelChangeDetail>;
 
   constructor(config: Config, optionnal?: { cache: boolean; cacheVersion: string }) {
     super();
@@ -29,6 +43,10 @@ export class GemPanelElement extends GemElement {
     this.effect(
       () => updateConfig(this.config),
       () => [this.config],
+    );
+    this.effect(
+      () => this.panelChange({ showPanels: this.showPanels, hiddenPanels: this.hiddenPanels }),
+      () => [this.hiddenPanels.length],
     );
     if (this.cache) {
       window.addEventListener('unload', this.unmounted);
@@ -63,6 +81,14 @@ export class GemPanelElement extends GemElement {
       ${windows.map((window) => html`<gem-panel-window .window=${window}></gem-panel-window>`)}
     `;
   };
+
+  get hiddenPanels() {
+    return [...new Set(store.config.panels)];
+  }
+
+  get showPanels() {
+    return [...new Set(store.config.windows.map((w) => w.panels).flat())];
+  }
 
   openHiddenPanel(title: string) {
     openHiddenPanel(title);
