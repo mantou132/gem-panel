@@ -1,10 +1,12 @@
-import { html, GemElement, customElement, connectStore, updateStore } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
 import { Config, Panel, Window } from '../lib/config';
 import {
   cancelHandleWindow,
+  cancelAndMergeWindow,
+  setWindowPanTimeout,
   moveSide,
   store,
   updateCurrentPanel,
@@ -98,23 +100,11 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onHeaderPan = ({ detail }: CustomEvent<PanEventDetail>) => {
-    window.clearTimeout(store.windowPanTimer);
+    clearTimeout(store.windowPanTimer);
     if (this.isGrid) {
-      const { x, y, width, height } = this.getBoundingClientRect();
-      updateWindowType(this, [x, y, width, height]);
+      updateWindowType(this);
     } else {
-      updateStore(store, {
-        windowPanTimer: window.setTimeout(() => {
-          const shadowDom = (this.getRootNode() as unknown) as ShadowRoot;
-          const eles = shadowDom
-            .elementsFromPoint(detail.clientX, detail.clientY)
-            .filter((e) => e instanceof GemPanelWindowElement) as GemPanelWindowElement[];
-          const ele = eles.find((e) => e !== this && e.window !== this.window);
-          if (ele) {
-            updateStore(store, { hoverWindow: ele.window, panWindow: this.window });
-          }
-        }, 400),
-      });
+      setWindowPanTimeout(this, [detail.clientX, detail.clientY]);
       if (distance(detail.x, detail.y) > 4) {
         cancelHandleWindow();
       }
@@ -123,11 +113,7 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onHeaderEnd = () => {
-    window.clearTimeout(store.windowPanTimer);
-    if (store.hoverWindow) {
-      this.config.mergeWindow(this.window, store.hoverWindow);
-      cancelHandleWindow();
-    }
+    cancelAndMergeWindow(this);
   };
 
   get isGrid() {

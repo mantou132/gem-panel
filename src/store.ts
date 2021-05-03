@@ -12,8 +12,29 @@ export const store = createStore<AppStore>({
   panWindow: null,
 });
 
+export function setWindowPanTimeout(ele: GemPanelWindowElement, [clientX, clientY]: [number, number]) {
+  updateStore(store, {
+    windowPanTimer: window.setTimeout(() => {
+      const shadowDom = (ele.getRootNode() as unknown) as ShadowRoot;
+      const eles = shadowDom.elementsFromPoint(clientX, clientY) as GemPanelWindowElement[];
+      const e = eles.find((e) => e !== ele && e.window && e.window !== ele.window);
+      if (e) {
+        updateStore(store, { hoverWindow: e.window, panWindow: ele.window });
+      }
+    }, 400),
+  });
+}
+
 export function cancelHandleWindow() {
   updateStore(store, { hoverWindow: null, panWindow: null });
+}
+
+export function cancelAndMergeWindow({ config, window }: GemPanelWindowElement) {
+  clearTimeout(store.windowPanTimer);
+  if (store.hoverWindow) {
+    config.mergeWindow(window, store.hoverWindow);
+    cancelHandleWindow();
+  }
 }
 
 export function updateCurrentPanel({ window }: GemPanelWindowElement, current: number) {
@@ -36,11 +57,10 @@ export function updateWindowZIndex({ config, window }: GemPanelWindowElement) {
   updateStore(store, {});
 }
 
-export function updateWindowType(
-  { config, window }: GemPanelWindowElement,
-  position: [number, number, number, number],
-) {
-  config.removeWindow(window, position);
+export function updateWindowType(ele: GemPanelWindowElement) {
+  const { config, window } = ele;
+  const { x, y, width, height } = ele.getBoundingClientRect();
+  config.removeWindow(window, [x, y, width, height]);
   updateStore(store, {});
 }
 
