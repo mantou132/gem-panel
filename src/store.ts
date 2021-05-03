@@ -2,9 +2,19 @@ import { createStore, updateStore } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import { GemPanelTitleElement } from './elements/panel-title';
 import { Side, GemPanelWindowElement } from './elements/window';
-import { Panel } from './lib/config';
+import { Panel, Window } from './lib/config';
 
-export const store = createStore({});
+type AppStore = { windowPanTimer: number; hoverWindow: null | Window; panWindow: null | Window };
+
+export const store = createStore<AppStore>({
+  windowPanTimer: 0,
+  hoverWindow: null,
+  panWindow: null,
+});
+
+export function cancelHandleWindow() {
+  updateStore(store, { hoverWindow: null, panWindow: null });
+}
 
 export function updateCurrentPanel({ window }: GemPanelWindowElement, current: number) {
   window.changeCurrent(current);

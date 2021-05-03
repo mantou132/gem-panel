@@ -15,3 +15,7 @@ export function isEqualArray(a: any[], b: any[]) {
   if (a.length !== b.length) return false;
   return a.every((e, index) => e === b[index]);
 }
+
+export function distance(x: number, y: number) {
+  return Math.sqrt(x ** 2 + y ** 2);
+}

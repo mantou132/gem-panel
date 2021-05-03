@@ -1,9 +1,10 @@
-import { html, GemElement, customElement, connectStore } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, updateStore } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
 import { Config, Panel, Window } from '../lib/config';
 import {
+  cancelHandleWindow,
   moveSide,
   store,
   updateCurrentPanel,
@@ -15,6 +16,7 @@ import {
 
 import './panel-title';
 import { GemPanelTitleElement } from './panel-title';
+import { distance } from '../lib/utils';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 
@@ -70,7 +72,7 @@ export class GemPanelWindowElement extends GemElement<State> {
     const { panel, move, offsetY, parentOffsetY, clientX, clientY } = this.state;
     if (!panel) return;
     // first move
-    if (!move && Math.sqrt((evt.clientX - clientX) ** 2 + (evt.clientY - clientY) ** 2) < 4) return;
+    if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < 4) return;
     this.setState({ move: true, clientX: evt.clientX, clientY: evt.clientY });
     const ele = this.shadowRoot?.elementFromPoint(evt.clientX, parentOffsetY + offsetY);
     if (ele instanceof GemPanelTitleElement && ele.panel !== panel) {
@@ -95,11 +97,35 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onHeaderPan = ({ detail }: CustomEvent<PanEventDetail>) => {
+    window.clearTimeout(store.windowPanTimer);
     if (this.isGrid) {
       const { x, y, width, height } = this.getBoundingClientRect();
       updateWindowType(this, [x, y, width, height]);
     } else {
+      updateStore(store, {
+        windowPanTimer: window.setTimeout(() => {
+          const shadowDom = (this.getRootNode() as unknown) as ShadowRoot;
+          const eles = shadowDom
+            .elementsFromPoint(detail.clientX, detail.clientY)
+            .filter((e) => e instanceof GemPanelWindowElement) as GemPanelWindowElement[];
+          const ele = eles.find((e) => e !== this && e.window !== this.window);
+          if (ele) {
+            updateStore(store, { hoverWindow: ele.window, panWindow: this.window });
+          }
+        }, 400),
+      });
+      if (distance(detail.x, detail.y) > 4) {
+        cancelHandleWindow();
+      }
       updateWindowPosition(this, detail.x, detail.y);
+    }
+  };
+
+  #onHeaderEnd = () => {
+    window.clearTimeout(store.windowPanTimer);
+    if (store.hoverWindow) {
+      this.config.mergeWindow(this.window, store.hoverWindow);
+      cancelHandleWindow();
     }
   };
 
@@ -135,6 +161,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           z-index: ${isGrid ? 0 : zIndex};
           overflow: ${isGrid ? 'visible' : 'hidden'};
           box-shadow: ${isGrid ? 'none' : '0px 1px 3px rgba(0, 0, 0, .4)'};
+          opacity: ${store.panWindow === this.window ? 0.5 : 1};
         }
         .header {
           overflow: hidden;
@@ -206,6 +233,13 @@ export class GemPanelWindowElement extends GemElement<State> {
         .left {
           right: 100%;
         }
+        .mask {
+          position: absolute;
+          z-index: 2;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 0, 0, 0.2);
+        }
       </style>
       ${isGrid
         ? sides.map(
@@ -217,7 +251,7 @@ export class GemPanelWindowElement extends GemElement<State> {
             `,
           )
         : ''}
-      <gem-gesture class="header" @pan=${this.#onHeaderPan}>
+      <gem-gesture class="header" @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}>
         ${panels.map(
           (p, index) =>
             html`
@@ -250,6 +284,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           : ''}
       </gem-gesture>
       <div class="content">${panels[current].content}</div>
+      ${store.hoverWindow === this.window ? html`<div class="mask"></div>` : ''}
     `;
   };
 }

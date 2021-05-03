@@ -333,6 +333,14 @@ export class Config implements ConfigOptional {
     this.#optimizationAreas();
   }
 
+  mergeWindow(window: Window, target: Window) {
+    const index = this.windows.findIndex((e) => e === window);
+    this.windows.splice(index, 1);
+    const targetLen = target.panels.length;
+    target.panels.push(...window.panels);
+    target.changeCurrent(targetLen + (window.current || 0));
+  }
+
   closePanel(window: Window, panel: Panel) {
     const panelIndex = window.panels.findIndex((e) => e === panel);
     const closerIndex = getNewFocusElementIndex(window.panels, window.current || 0, panelIndex);
