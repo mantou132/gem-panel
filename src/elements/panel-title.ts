@@ -9,7 +9,7 @@ export class GemPanelTitleElement extends GemElement {
   window: Window;
   panel: Panel;
 
-  closeHandle = (evt: Event) => {
+  #closeHandle = (evt: Event) => {
     evt.stopPropagation();
     closePanel(this);
   };
@@ -22,7 +22,7 @@ export class GemPanelTitleElement extends GemElement {
         }
       </style>
       <slot></slot>
-      <span class="close-btn" @click=${this.closeHandle}>x</span>
+      <span class="close-btn" @click=${this.#closeHandle}>x</span>
     `;
   };
 }
