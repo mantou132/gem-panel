@@ -271,7 +271,7 @@ export class GemPanelWindowElement extends GemElement<State> {
             html`
               <gem-panel-title
                 class=${`
-                  ${(p === panel && move) || p === independentPanel ? 'hidden' : ''}
+                  ${(p === panel && move) || (index !== 0 && p === independentPanel) ? 'hidden' : ''}
                   ${index === current ? 'active' : ''}
                   title
                 `}
