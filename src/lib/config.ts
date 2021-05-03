@@ -1,4 +1,5 @@
 import { TemplateResult, html } from '@mantou/gem';
+import { DEFAULT_DIMENSION, DEFAULT_GAP, DEFAULT_POSITION } from '../const';
 import { Side } from '../elements/window';
 import { getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
@@ -49,8 +50,8 @@ export class Window implements WindowOptional {
     this.panels = panels;
     this.zIndex = zIndex;
     if (position || dimension) {
-      this.position = position || [100, 100];
-      this.dimension = dimension || [300, 150];
+      this.position = position || DEFAULT_POSITION;
+      this.dimension = dimension || DEFAULT_DIMENSION;
     }
   }
 
@@ -340,12 +341,28 @@ export class Config implements ConfigOptional {
     console.log(window, side);
   }
 
-  createIndependentWindow(window: Window, panel: Panel, [x, y, w, h]: [number, number, number, number]) {
+  createIndependentWindow(window: Window | null, panel: Panel, [x, y, w, h]: [number, number, number, number]) {
     const newWindow = new Window([panel], { position: [x, y], dimension: [w, h] });
     this.focusWindow(newWindow);
     this.windows.push(newWindow);
-    this.closePanel(window, panel);
+    if (window) this.closePanel(window, panel);
     return newWindow;
+  }
+
+  openHiddenPanel(arg: Panel | string) {
+    let panel: Panel | undefined;
+    if (typeof arg === 'string') {
+      panel = this.panels.find((e) => e.title === arg);
+    } else {
+      panel = arg;
+    }
+    if (!panel) return;
+    removeItem(this.panels, panel);
+    const getPosition = (position: [number, number]): [number, number] => {
+      const window = this.windows.find((w) => w.position && isEqualArray(w.position, position));
+      return window ? getPosition([position[0] + DEFAULT_GAP, position[1] + DEFAULT_GAP]) : position;
+    };
+    this.createIndependentWindow(null, panel, [...getPosition(DEFAULT_POSITION), ...DEFAULT_DIMENSION]);
   }
 
   closePanel(window: Window, panel: Panel) {

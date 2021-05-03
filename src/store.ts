@@ -27,6 +27,11 @@ export function updateConfig(config: Config) {
   updateStore(store, { config });
 }
 
+export function openHiddenPanel(arg: Panel | string) {
+  store.config.openHiddenPanel(arg);
+  updateStore(store, {});
+}
+
 export function independentPanel({ window }: WindowConfig, panel: Panel, rect: [number, number, number, number]) {
   const newWindow = store.config.createIndependentWindow(window, panel, rect);
   updateStore(store, {});

@@ -1,6 +1,6 @@
 import { html, GemElement, customElement, property, connectStore, boolattribute, attribute } from '@mantou/gem';
 import { Config } from '../lib/config';
-import { store, updateConfig } from '../store';
+import { openHiddenPanel, store, updateConfig } from '../store';
 
 import './window';
 
@@ -63,4 +63,8 @@ export class GemPanelElement extends GemElement {
       ${windows.map((window) => html`<gem-panel-window .window=${window}></gem-panel-window>`)}
     `;
   };
+
+  openHiddenPanel(title: string) {
+    openHiddenPanel(title);
+  }
 }
