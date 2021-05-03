@@ -1,15 +1,23 @@
 import { createStore, updateStore } from '@mantou/gem';
-import { PanEventDetail } from '@mantou/gem/elements/gesture';
+import { WINDOW_BORDER } from './const';
 import { Side, GemPanelWindowElement } from './elements/window';
+import { HoverWindowPosition } from './elements/window-mask';
 import { Config, Panel, Window } from './lib/config';
+import { detectPosition } from './lib/utils';
 
-type AppStore = { windowPanTimer: number; hoverWindow: null | Window; panWindow: null | Window };
+type AppStore = {
+  windowPanTimer: number;
+  hoverWindow: null | Window;
+  panWindow: null | Window;
+  hoverWindowPosition: HoverWindowPosition;
+};
 type WindowConfig = { config: Config; window: Window };
 type PanelConfig = WindowConfig & { panel: Panel };
 
 export const store = createStore<AppStore>({
   windowPanTimer: 0,
   hoverWindow: null,
+  hoverWindowPosition: 'center',
   panWindow: null,
 });
 
@@ -35,7 +43,15 @@ export function setWindowPanTimeout(
       const currentWindowEle = windowEles.find((e) => e.window === currentPanWindow);
       const hoverWindowEle = windowEles.find((e) => e !== currentWindowEle && e.window !== currentWindowEle?.window);
       if (hoverWindowEle) {
-        updateStore(store, { hoverWindow: hoverWindowEle.window, panWindow: currentPanWindow });
+        const { x, y, width, height } = hoverWindowEle.getBoundingClientRect();
+        const isSmall = width < 4 * WINDOW_BORDER || height < 3 * WINDOW_BORDER;
+        updateStore(store, {
+          hoverWindow: hoverWindowEle.window,
+          panWindow: currentPanWindow,
+          hoverWindowPosition: isSmall
+            ? 'center'
+            : detectPosition([x, y, width, height], [clientX, clientY], WINDOW_BORDER),
+        });
       }
     }, 400),
   });
@@ -45,10 +61,14 @@ export function cancelHandleWindow() {
   updateStore(store, { hoverWindow: null, panWindow: null });
 }
 
-export function cancelAndMergeWindow({ config, window }: WindowConfig) {
+export function dropHandleWindow({ config, window }: WindowConfig) {
   clearTimeout(store.windowPanTimer);
   if (store.hoverWindow) {
-    config.mergeWindow(window, store.hoverWindow);
+    if (store.hoverWindowPosition === 'center') {
+      config.mergeWindow(window, store.hoverWindow);
+    } else {
+      config.createWindow(window, store.hoverWindowPosition);
+    }
     cancelHandleWindow();
   }
 }
@@ -73,9 +93,7 @@ export function updateWindowZIndex({ config, window }: WindowConfig) {
   updateStore(store, {});
 }
 
-export function updateWindowType(ele: GemPanelWindowElement) {
-  const { config, window } = ele;
-  const { x, y, width, height } = ele.getBoundingClientRect();
+export function updateWindowType({ config, window }: WindowConfig, { x, y, width, height }: DOMRect) {
   config.removeWindow(window, [x, y, width, height]);
   updateStore(store, {});
 }
@@ -85,16 +103,7 @@ export function closePanel({ config, window, panel }: PanelConfig) {
   updateStore(store, {});
 }
 
-export function moveSide(ele: GemPanelWindowElement, side: Side, { x, y }: PanEventDetail) {
-  const { width, height } = ele.getBoundingClientRect();
-  const { config, window } = ele;
-
-  if (side === 'top' || side === 'bottom') {
-    const axisIndex = config.findHAxis(window);
-    config.moveHAxis(side === 'top' ? axisIndex : axisIndex + 1, (y / height) * config.getWindowHeight(window));
-  } else {
-    const axisIndex = config.findVAxis(window);
-    config.moveVAxis(side === 'left' ? axisIndex : axisIndex + 1, (x / width) * config.getWindowWidth(window));
-  }
+export function moveSide({ config, window }: WindowConfig, side: Side, movmentPercentage: [number, number]) {
+  config.moveSide(window, side, movmentPercentage);
   updateStore(store, {});
 }

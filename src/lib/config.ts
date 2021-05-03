@@ -1,4 +1,5 @@
 import { TemplateResult, html } from '@mantou/gem';
+import { Side } from '../elements/window';
 import { getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
 type PannelContent = TemplateResult | string;
@@ -339,6 +340,11 @@ export class Config implements ConfigOptional {
     target.changeCurrent(targetLen + (window.current || 0));
   }
 
+  createWindow(window: Window, side: Side) {
+    // TODO
+    console.log(window, side);
+  }
+
   createIndependentWindow(window: Window, panel: Panel, [x, y, w, h]: [number, number, number, number]) {
     const newWindow = new Window([panel], { position: [x, y], dimension: [w, h] });
     this.focusWindow(newWindow);
@@ -359,48 +365,22 @@ export class Config implements ConfigOptional {
     }
   }
 
-  moveHAxis(axisIndex: number, fr: number) {
-    this.#rows[axisIndex - 1] += fr;
-    this.#rows[axisIndex] -= fr;
-    this.#stringifyGridTemplateRows();
-  }
-
-  moveVAxis(axisIndex: number, fr: number) {
-    this.#columns[axisIndex - 1] += fr;
-    this.#columns[axisIndex] -= fr;
-    this.#stringifyGridTemplateColumns();
-  }
-
-  findHAxis(window: Window) {
-    let index = 0;
-    this.#areas.forEach((row, i) => {
-      if (row.includes(window.gridArea!)) {
-        index = i;
-      }
-    });
-    return index;
-  }
-
-  findVAxis(window: Window) {
-    let index = 0;
-    this.#areas.forEach((row) => {
-      const i = row.lastIndexOf(window.gridArea!);
-      if (i > index) index = i;
-    });
-    return index;
-  }
-
-  getWindowHeight(window: Window) {
+  moveSide(window: Window, side: Side, [mxp, myp]: [number, number]) {
     const areas = this.#findAreas(window);
-    return [...new Set(areas.map((area) => area[1]))].reduce((p, c) => {
-      return p + this.#rows[c];
-    }, 0);
-  }
+    const { minRow, minColumn } = this.#findAreasBoundary(areas);
 
-  getWindowWidth(window: Window) {
-    const areas = this.#findAreas(window);
-    return [...new Set(areas.map((area) => area[0]))].reduce((p, c) => {
-      return p + this.#columns[c];
-    }, 0);
+    if (side === 'top' || side === 'bottom') {
+      const fr = myp * [...new Set(areas.map((area) => area[1]))].reduce((p, c) => p + this.#rows[c], 0);
+      const index = side === 'top' ? minRow : minRow + 1;
+      this.#rows[index - 1] += fr;
+      this.#rows[index] -= fr;
+      this.#stringifyGridTemplateRows();
+    } else {
+      const fr = mxp * [...new Set(areas.map((area) => area[0]))].reduce((p, c) => p + this.#columns[c], 0);
+      const index = side === 'left' ? minColumn : minColumn + 1;
+      this.#columns[index - 1] += fr;
+      this.#columns[index] -= fr;
+      this.#stringifyGridTemplateColumns();
+    }
   }
 }

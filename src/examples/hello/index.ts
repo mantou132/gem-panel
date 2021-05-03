@@ -14,7 +14,9 @@ const window1 = new Window([panel1, panel4, panel5]);
 const window2 = new Window([panel2]);
 const window3 = new Window([panel6]);
 const window4 = new Window([panel7], { position: [10, 10] });
-const config = new Config([window4, window1, window2, window3], [panel3]);
+const window5 = new Window([panel6]);
+const window6 = new Window([panel6]);
+const config = new Config([window4, window1, window2, window3, window5, window6], [panel3]);
 
 render(
   html`

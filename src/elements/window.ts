@@ -5,7 +5,7 @@ import '@mantou/gem/elements/gesture';
 import { Config, Panel, Window } from '../lib/config';
 import {
   cancelHandleWindow,
-  cancelAndMergeWindow,
+  dropHandleWindow,
   setWindowPanTimeout,
   moveSide,
   store,
@@ -18,6 +18,7 @@ import {
 } from '../store';
 
 import './panel-title';
+import './window-mask';
 import { GemPanelTitleElement } from './panel-title';
 import { distance } from '../lib/utils';
 
@@ -110,7 +111,7 @@ export class GemPanelWindowElement extends GemElement<State> {
     const { independentWindow } = this.state;
     setTimeout(() => {
       if (independentWindow) {
-        cancelAndMergeWindow({ config: this.config, window: independentWindow });
+        dropHandleWindow({ config: this.config, window: independentWindow });
       }
       this.setState({ panel: null, move: false, independentWindow: null });
     });
@@ -126,7 +127,7 @@ export class GemPanelWindowElement extends GemElement<State> {
   #onHeaderPan = ({ detail }: CustomEvent<PanEventDetail>) => {
     clearTimeout(store.windowPanTimer);
     if (this.isGrid) {
-      updateWindowType(this);
+      updateWindowType(this, this.getBoundingClientRect());
     } else {
       setWindowPanTimeout(this, this.window, [detail.clientX, detail.clientY]);
       if (distance(detail.x, detail.y) > 4) {
@@ -137,7 +138,12 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onHeaderEnd = () => {
-    cancelAndMergeWindow(this);
+    dropHandleWindow(this);
+  };
+
+  #onSidePan = ({ detail }: CustomEvent<PanEventDetail>, dir: Side) => {
+    const { width, height } = this.getBoundingClientRect();
+    moveSide(this, dir, [detail.x / width, detail.y / height]);
   };
 
   get isGrid() {
@@ -247,20 +253,13 @@ export class GemPanelWindowElement extends GemElement<State> {
         .left {
           right: 100%;
         }
-        .mask {
-          position: absolute;
-          z-index: 2;
-          width: 100%;
-          height: 100%;
-          background: rgba(255, 0, 0, 0.2);
-        }
       </style>
       ${isGrid
         ? sides.map(
             (dir) => html`
               <gem-gesture
                 class=${dir}
-                @pan=${({ detail }: CustomEvent<PanEventDetail>) => moveSide(this, dir, detail)}
+                @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onSidePan(evt, dir)}
               ></gem-gesture>
             `,
           )
@@ -302,7 +301,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           : ''}
       </gem-gesture>
       <div class="content">${panels[current].content}</div>
-      ${store.hoverWindow === this.window ? html`<div class="mask"></div>` : ''}
+      ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
     `;
   };
 }

@@ -24,3 +24,17 @@ export function removeItem(arr: any[], item: any) {
   const index = arr.findIndex((e) => e === item);
   arr.splice(index, 1);
 }
+
+export function detectPosition([ox, oy, w, h]: number[], [px, py]: [number, number], border: number) {
+  const [x, y] = [px - ox, py - oy];
+  if (x >= y && y >= 0 && y <= border && x <= w - y) {
+    return 'top';
+  } else if (x >= w - border && x <= w && y >= w - x && y <= h - (w - x)) {
+    return 'right';
+  } else if (y >= h - border && y <= h && x >= h - y && x <= w - (h - y)) {
+    return 'bottom';
+  } else if (x >= 0 && x <= border && y >= x && y <= h - x) {
+    return 'left';
+  }
+  return 'center';
+}
