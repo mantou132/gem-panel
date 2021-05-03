@@ -31,12 +31,7 @@ export class GemPanelElement extends GemElement {
           user-select: none;
         }
       </style>
-      ${windows.map(
-        (window) =>
-          html`
-            <gem-panel-window .window=${window} .config=${this.config} @hidden-panel=${console.log}></gem-panel-window>
-          `,
-      )}
+      ${windows.map((window) => html`<gem-panel-window .window=${window} .config=${this.config}></gem-panel-window>`)}
     `;
   };
 }

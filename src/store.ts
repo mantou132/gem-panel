@@ -2,11 +2,17 @@ import { createStore, updateStore } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import { GemPanelTitleElement } from './elements/panel-title';
 import { Side, GemPanelWindowElement } from './elements/window';
+import { Panel } from './lib/config';
 
 export const store = createStore({});
 
 export function updateCurrentPanel({ window }: GemPanelWindowElement, current: number) {
   window.changeCurrent(current);
+  updateStore(store, {});
+}
+
+export function updatePanelSort({ window }: GemPanelWindowElement, p1: Panel, p2: Panel) {
+  window.changePanelSort(p1, p2);
   updateStore(store, {});
 }
 

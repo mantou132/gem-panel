@@ -46,6 +46,17 @@ export class Window implements WindowOptional {
   changeCurrent(index: number) {
     this.current = index;
   }
+
+  changePanelSort(p1: Panel, p2: Panel) {
+    const p1Index = this.panels.findIndex((e) => e === p1);
+    const p2Index = this.panels.findIndex((e) => e === p2);
+    [this.panels[p1Index], this.panels[p2Index]] = [p2, p1];
+    if (this.current === p1Index) {
+      this.changeCurrent(p2Index);
+    } else if (this.current === p2Index) {
+      this.changeCurrent(p1Index);
+    }
+  }
 }
 
 interface ConfigOptional {
