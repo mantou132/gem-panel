@@ -66,6 +66,7 @@ export class GemPanelElement extends GemElement {
     return html`
       <style>
         :host {
+          position: relative;
           overflow: hidden;
           display: grid;
           gap: 2px;

@@ -207,7 +207,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           display: flex;
           flex-direction: column;
           background: white;
-          position: ${isGrid ? 'relative' : 'fixed'};
+          position: ${isGrid ? 'relative' : 'absolute'};
           left: ${position?.[0]}px;
           top: ${position?.[1]}px;
           width: ${dimension?.[0]}px;
