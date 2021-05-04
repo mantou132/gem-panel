@@ -15,6 +15,7 @@ import {
   updateWindowType,
   updateWindowZIndex,
   independentPanel,
+  updateWindowDimension,
 } from '../lib/store';
 
 import './panel-title';
@@ -23,8 +24,10 @@ import { GemPanelTitleElement } from './panel-title';
 import { distance } from '../lib/utils';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
-
 export type Side = typeof sides[number];
+
+const corners = ['top-left', 'top-right', 'bottom-right', 'bottom-left'] as const;
+export type Corner = typeof corners[number];
 
 type State = {
   independentWindow: Window | null; // store?
@@ -147,9 +150,40 @@ export class GemPanelWindowElement extends GemElement<State> {
     dropHandleWindow(this);
   };
 
-  #onSidePan = ({ detail }: CustomEvent<PanEventDetail>, dir: Side) => {
+  #onSidePan = ({ detail }: CustomEvent<PanEventDetail>, side: Side) => {
     const { width, height } = this.getBoundingClientRect();
-    moveSide(this, dir, [detail.x / width, detail.y / height]);
+    moveSide(this, side, [detail.x / width, detail.y / height]);
+  };
+
+  #onCornerPan = ({ detail: { x, y } }: CustomEvent<PanEventDetail>, corner: Corner) => {
+    const movement = {
+      x: 0,
+      y: 0,
+      w: 0,
+      h: 0,
+    };
+    if (corner === 'top-left') {
+      movement.w = -x;
+      movement.h = -y;
+      movement.x = x;
+      movement.y = y;
+    }
+    if (corner === 'top-right') {
+      movement.w = x;
+      movement.h = -y;
+      movement.y = y;
+    }
+    if (corner === 'bottom-right') {
+      movement.w = x;
+      movement.h = y;
+    }
+    if (corner === 'bottom-left') {
+      movement.x = x;
+      movement.w = -x;
+      movement.h = y;
+    }
+    updateWindowPosition(this, [movement.x, movement.y]);
+    updateWindowDimension(this, [movement.w, movement.h]);
   };
 
   mounted = () => {
@@ -254,13 +288,42 @@ export class GemPanelWindowElement extends GemElement<State> {
         .left {
           right: 100%;
         }
+        .top-left,
+        .top-right,
+        .bottom-right,
+        .bottom-left {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          z-index: 1;
+        }
+        .top-left {
+          top: 0;
+          left: 0;
+          cursor: nwse-resize;
+        }
+        .top-right {
+          top: 0;
+          right: 0;
+          cursor: nesw-resize;
+        }
+        .bottom-right {
+          bottom: 0;
+          right: 0;
+          cursor: nwse-resize;
+        }
+        .bottom-left {
+          bottom: 0;
+          left: 0;
+          cursor: nesw-resize;
+        }
       </style>
       ${isGrid
         ? sides.map(
-            (dir) => html`
+            (side) => html`
               <gem-gesture
-                class=${dir}
-                @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onSidePan(evt, dir)}
+                class=${side}
+                @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onSidePan(evt, side)}
               ></gem-gesture>
             `,
           )
@@ -301,6 +364,16 @@ export class GemPanelWindowElement extends GemElement<State> {
       </gem-gesture>
       <div class="content">${panels[current].content}</div>
       ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
+      ${isGrid
+        ? ''
+        : corners.map(
+            (corner) => html`
+              <gem-gesture
+                class=${corner}
+                @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onCornerPan(evt, corner)}
+              ></gem-gesture>
+            `,
+          )}
     `;
   };
 }

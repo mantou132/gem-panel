@@ -98,6 +98,11 @@ export function updateWindowPosition({ window }: WindowConfig, movement: [number
   updateStore(store, {});
 }
 
+export function updateWindowDimension({ window }: WindowConfig, movement: [number, number]) {
+  store.config.changeWindowDimension(window, movement);
+  updateStore(store, {});
+}
+
 export function updateWindowZIndex({ window }: WindowConfig) {
   store.config.focusWindow(window);
   updateStore(store, {});

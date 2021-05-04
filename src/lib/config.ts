@@ -292,6 +292,11 @@ export class Config implements ConfigOptional {
     window.position = [originX + x, originY + y];
   }
 
+  changeWindowDimension(window: Window, [x, y]: [number, number]) {
+    const [originW = 0, originH = 0] = window.dimension || [];
+    window.dimension = [originW + x, originH + y];
+  }
+
   focusWindow(window: Window) {
     const maxZIndex = Math.max(...this.windows.map((w) => w.zIndex || 0));
     window.zIndex = maxZIndex + 1;
