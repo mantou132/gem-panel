@@ -243,6 +243,14 @@ export class GemPanelWindowElement extends GemElement<State> {
           background: ${theme.darkBackgroundColor};
           margin-bottom: calc(0px - 0.2em - ${theme.windowGap});
         }
+        .flex {
+          display: flex;
+        }
+        .widthgrow {
+          width: 0;
+          flex-grow: 1;
+          overflow: auto;
+        }
         .header {
           padding: ${theme.windowGap};
           overflow: hidden;
@@ -275,11 +283,11 @@ export class GemPanelWindowElement extends GemElement<State> {
           border-bottom-color: ${theme.focusColor};
         }
         .content {
-          padding: 0 ${theme.windowGap};
-          overflow: auto;
+          padding: ${theme.windowGap};
+          padding-top: 0;
           position: relative;
-          flex-grow: 1;
           height: 0;
+          flex-grow: 1;
           scrollbar-width: none;
         }
         .top,
@@ -357,41 +365,50 @@ export class GemPanelWindowElement extends GemElement<State> {
           )
         : ''}
       ${isGrid ? '' : html`<gem-gesture class="bar" @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}></gem-gesture>`}
-      <gem-gesture class="header" @wheel=${this.#onHeaderWheel} @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}>
-        ${panels.concat(independentPanel || []).map(
-          (p, index) =>
-            html`
-              <gem-panel-title
-                class=${`
+      <div class="flex">
+        <gem-gesture
+          class="widthgrow header"
+          @wheel=${this.#onHeaderWheel}
+          @pan=${this.#onHeaderPan}
+          @end=${this.#onHeaderEnd}
+        >
+          ${panels.concat(independentPanel || []).map(
+            (p, index) =>
+              html`
+                <gem-panel-title
+                  class=${`
                   ${(p === panel && move) || (index !== 0 && p === independentPanel) ? 'hidden' : ''}
                   ${index === current ? 'active' : ''}
                   title
                 `}
-                .window=${this.window}
-                .panel=${p}
-                @click=${() => this.#clickHandle(index)}
-                @pointerdown=${(evt: PointerEvent) => this.#onMoveTitleStart(p, evt)}
-                @pointermove=${this.#onMoveTitle}
-                @pointerup=${this.#onMoveTitleEnd}
-                @pointercancel=${this.#onMoveTitleEnd}
-              >
-                ${p.title}
-              </gem-panel-title>
-            `,
-        )}
-        ${panel && move
-          ? html`
-              <gem-panel-title
-                class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
-                .window=${this.window}
-                .panel=${panel}
-              >
-                ${panel.title}
-              </gem-panel-title>
-            `
-          : ''}
-      </gem-gesture>
-      <div class="content">${panels[current].content}</div>
+                  .window=${this.window}
+                  .panel=${p}
+                  @click=${() => this.#clickHandle(index)}
+                  @pointerdown=${(evt: PointerEvent) => this.#onMoveTitleStart(p, evt)}
+                  @pointermove=${this.#onMoveTitle}
+                  @pointerup=${this.#onMoveTitleEnd}
+                  @pointercancel=${this.#onMoveTitleEnd}
+                >
+                  ${p.title}
+                </gem-panel-title>
+              `,
+          )}
+          ${panel && move
+            ? html`
+                <gem-panel-title
+                  class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
+                  .window=${this.window}
+                  .panel=${panel}
+                >
+                  ${panel.title}
+                </gem-panel-title>
+              `
+            : ''}
+        </gem-gesture>
+      </div>
+      <div class="flex content">
+        <div class="widthgrow">${panels[current].content}</div>
+      </div>
       ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
       ${isGrid
         ? ''
