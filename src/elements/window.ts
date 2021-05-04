@@ -150,6 +150,11 @@ export class GemPanelWindowElement extends GemElement<State> {
     dropHandleWindow(this);
   };
 
+  #onHeaderWheel = (evt: WheelEvent) => {
+    const target = evt.currentTarget as HTMLElement;
+    target.scrollBy(evt.deltaY, 0);
+  };
+
   #onSidePan = ({ detail }: CustomEvent<PanEventDetail>, side: Side) => {
     const { width, height } = this.getBoundingClientRect();
     moveSide(this, side, [detail.x / width, detail.y / height]);
@@ -222,16 +227,20 @@ export class GemPanelWindowElement extends GemElement<State> {
           overflow: hidden;
           position: relative;
           display: flex;
+          flex-shrink: 0;
         }
         .title {
           background: white;
           border: 1px solid transparent;
           border-bottom: none;
+          flex-shrink: 0;
         }
         .content {
+          overflow: auto;
           position: relative;
           border: 1px solid red;
           flex-grow: 1;
+          height: 0;
           margin-top: -1px;
         }
         .title.active {
@@ -255,10 +264,6 @@ export class GemPanelWindowElement extends GemElement<State> {
         .bottom,
         .left {
           position: absolute;
-          background: black;
-        }
-        :is(.top, .right, .bottom, .left):hover {
-          background: blue;
         }
         :is(.top, .bottom):hover {
           cursor: row-resize;
@@ -328,7 +333,7 @@ export class GemPanelWindowElement extends GemElement<State> {
             `,
           )
         : ''}
-      <gem-gesture class="header" @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}>
+      <gem-gesture class="header" @wheel=${this.#onHeaderWheel} @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}>
         ${panels.concat(independentPanel || []).map(
           (p, index) =>
             html`
