@@ -9,6 +9,7 @@ import {
   emitter,
   Emitter,
 } from '@mantou/gem';
+import { updateTheme } from '@mantou/gem/helper/theme';
 import { Config, Panel } from '../lib/config';
 import { closePanel, openHiddenPanel, store, updateAppState } from '../lib/store';
 import { theme } from '../lib/theme';
@@ -29,12 +30,16 @@ export type OpenPanelMenuBeforeCallback = (panel: Panel) => MenuItem[];
 @connectStore(store)
 export class GemPanelElement extends GemElement {
   @property openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
-  @property config: Config;
+  @property config?: Config;
+  @property theme?: Partial<typeof theme>;
   @boolattribute cache: boolean;
   @attribute cacheVersion: string;
   @emitter panelChange: Emitter<PanelChangeDetail>;
 
-  constructor(config: Config, optionnal?: { cache: boolean; cacheVersion: string }) {
+  constructor(
+    config: Config,
+    optionnal?: { cache?: boolean; cacheVersion?: string; openPanelMenuBefore?: OpenPanelMenuBeforeCallback },
+  ) {
     super();
     this.config = config;
     Object.assign(this, optionnal);
@@ -48,6 +53,10 @@ export class GemPanelElement extends GemElement {
     this.effect(
       () => updateAppState({ config: this.config, openPanelMenuBefore: this.openPanelMenuBefore }),
       () => [this.config, this.openPanelMenuBefore],
+    );
+    this.effect(
+      () => updateTheme(theme, this.theme || {}),
+      () => [this.theme],
     );
     this.effect(
       () => this.panelChange({ showPanels: this.showPanels, hiddenPanels: this.hiddenPanels }),
