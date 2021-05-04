@@ -10,7 +10,7 @@ import {
   Emitter,
 } from '@mantou/gem';
 import { Config, Panel } from '../lib/config';
-import { closePanel, openHiddenPanel, store, updateConfig } from '../store';
+import { closePanel, openHiddenPanel, store, updateConfig } from '../lib/store';
 
 import './window';
 

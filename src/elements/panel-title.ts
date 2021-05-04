@@ -1,6 +1,6 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { Panel, Window } from '../lib/config';
-import { closePanel, store } from '../store';
+import { closePanel, store } from '../lib/store';
 
 @customElement('gem-panel-title')
 @connectStore(store)

@@ -1,6 +1,6 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
-import { WINDOW_BORDER } from '../const';
-import { store } from '../store';
+import { WINDOW_BORDER } from '../lib/const';
+import { store } from '../lib/store';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 

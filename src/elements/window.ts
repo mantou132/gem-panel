@@ -15,7 +15,7 @@ import {
   updateWindowType,
   updateWindowZIndex,
   independentPanel,
-} from '../store';
+} from '../lib/store';
 
 import './panel-title';
 import './window-mask';

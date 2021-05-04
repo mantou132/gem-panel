@@ -1,5 +1,5 @@
 import { TemplateResult, html, randomStr } from '@mantou/gem';
-import { DEFAULT_DIMENSION, DEFAULT_GAP, DEFAULT_POSITION } from '../const';
+import { DEFAULT_DIMENSION, DEFAULT_GAP, DEFAULT_POSITION } from './const';
 import { Side } from '../elements/window';
 import { findLimintPosition, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 

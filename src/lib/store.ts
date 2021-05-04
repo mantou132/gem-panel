@@ -1,9 +1,9 @@
 import { createStore, updateStore } from '@mantou/gem';
 import { WINDOW_BORDER } from './const';
-import { Side, GemPanelWindowElement } from './elements/window';
-import { HoverWindowPosition } from './elements/window-mask';
-import { Config, Panel, Window } from './lib/config';
-import { detectPosition } from './lib/utils';
+import { Side, GemPanelWindowElement } from '../elements/window';
+import { HoverWindowPosition } from '../elements/window-mask';
+import { Config, Panel, Window } from './config';
+import { detectPosition } from './utils';
 
 type AppStore = {
   config: Config;
