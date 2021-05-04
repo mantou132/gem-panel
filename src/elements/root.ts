@@ -10,7 +10,7 @@ import {
   Emitter,
 } from '@mantou/gem';
 import { Config, Panel } from '../lib/config';
-import { openHiddenPanel, store, updateConfig } from '../store';
+import { closePanel, openHiddenPanel, store, updateConfig } from '../store';
 
 import './window';
 
@@ -90,7 +90,31 @@ export class GemPanelElement extends GemElement {
     return [...new Set(store.config.windows.map((w) => w.panels).flat())];
   }
 
-  openHiddenPanel(title: string) {
-    openHiddenPanel(title);
+  get windows() {
+    return store.config.windows;
+  }
+
+  openHiddenPanel(arg: string | Panel) {
+    let panel: Panel | undefined;
+    if (typeof arg === 'string') {
+      panel = this.hiddenPanels.find((e) => e.title === arg);
+    } else {
+      panel = arg;
+    }
+    if (!panel) return;
+    openHiddenPanel(panel);
+  }
+
+  closePanel(arg: string | Panel) {
+    let panel: Panel | undefined;
+    if (typeof arg === 'string') {
+      panel = this.showPanels.find((e) => (e.title = arg));
+    } else {
+      panel = arg;
+    }
+    if (!panel) return;
+    const window = this.windows.find((e) => e.panels.includes(panel as Panel));
+    if (!window) return;
+    closePanel({ window, panel });
   }
 }

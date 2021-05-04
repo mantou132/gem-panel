@@ -349,14 +349,7 @@ export class Config implements ConfigOptional {
     return newWindow;
   }
 
-  openHiddenPanel(arg: Panel | string) {
-    let panel: Panel | undefined;
-    if (typeof arg === 'string') {
-      panel = this.panels.find((e) => e.title === arg);
-    } else {
-      panel = arg;
-    }
-    if (!panel) return;
+  openHiddenPanel(panel: Panel) {
     removeItem(this.panels, panel);
     const getPosition = (position: [number, number]): [number, number] => {
       const window = this.windows.find((w) => w.position && isEqualArray(w.position, position));

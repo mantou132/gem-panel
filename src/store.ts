@@ -27,8 +27,8 @@ export function updateConfig(config: Config) {
   updateStore(store, { config });
 }
 
-export function openHiddenPanel(arg: Panel | string) {
-  store.config.openHiddenPanel(arg);
+export function openHiddenPanel(panel: Panel) {
+  store.config.openHiddenPanel(panel);
   updateStore(store, {});
 }
 
