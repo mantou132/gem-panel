@@ -1,9 +1,11 @@
-import { TemplateResult, html } from '@mantou/gem';
+import { TemplateResult, html, randomStr } from '@mantou/gem';
 import { DEFAULT_DIMENSION, DEFAULT_GAP, DEFAULT_POSITION } from '../const';
 import { Side } from '../elements/window';
-import { getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
+import { findLimintPosition, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
 type PannelContent = TemplateResult | string;
+
+let id = 1;
 
 export class Panel {
   title: string;
@@ -68,6 +70,12 @@ export class Window implements WindowOptional {
     } else if (this.current === p2Index) {
       this.changeCurrent(p1Index);
     }
+  }
+
+  setGridArea(area: string) {
+    this.position = undefined;
+    this.dimension = undefined;
+    this.gridArea = area;
   }
 }
 
@@ -164,12 +172,14 @@ export class Config implements ConfigOptional {
 
   #findAreasBoundary = (areas: [number, number][]) => {
     const rows = [...new Set(areas.map((area) => area[1]))];
+    const height = rows.map((rowIndex) => this.#rows[rowIndex]).reduce((p, c) => p + c);
     const minRow = Math.min(...rows);
     const maxRow = Math.max(...rows);
     const columns = [...new Set(areas.map((area) => area[0]))];
+    const width = columns.map((columnIndex) => this.#columns[columnIndex]).reduce((p, c) => p + c);
     const minColumn = Math.min(...columns);
     const maxColumn = Math.max(...columns);
-    return { minRow, maxRow, minColumn, maxColumn, rows, columns };
+    return { minRow, maxRow, minColumn, maxColumn, rows, columns, height, width };
   };
 
   #parseAreas = (gridTemplateAreas: string) => {
@@ -336,9 +346,55 @@ export class Config implements ConfigOptional {
     target.changeCurrent(targetLen + (window.current || 0));
   }
 
-  createWindow(window: Window, side: Side) {
-    // TODO
-    console.log(window, side);
+  createWindow(window: Window, hoverWindow: Window, side: Side) {
+    const areas = this.#findAreas(hoverWindow);
+    const { rows, columns, width, height } = this.#findAreasBoundary(areas);
+    const gridArea = `a${randomStr()}${id++}`;
+
+    if (side === 'top' || side === 'bottom') {
+      const heightRows = rows.map((rowIndex) => this.#rows[rowIndex]);
+      const { index, margin } = findLimintPosition(heightRows, height / 2);
+      const limitRowIndex = rows[index];
+      this.#areas.splice(limitRowIndex, 0, [...this.#areas[limitRowIndex]]);
+      columns.forEach((columnIndex) => {
+        rows.forEach((rowIndex, i) => {
+          if (side === 'top') {
+            if (i <= index) {
+              this.#areas[rowIndex][columnIndex] = gridArea;
+            }
+          } else {
+            if (i >= index) {
+              this.#areas[rowIndex + 1][columnIndex] = gridArea;
+            }
+          }
+        });
+      });
+      this.#rows.splice(limitRowIndex, 1, this.#rows[limitRowIndex] - margin, margin);
+    }
+    if (side === 'right' || side === 'left') {
+      const widthColumns = columns.map((columnIndex) => this.#columns[columnIndex]);
+      const { index, margin } = findLimintPosition(widthColumns, width / 2);
+      const limitColumnIndex = columns[index];
+      this.#areas.forEach((row) => row.splice(limitColumnIndex, 0, row[limitColumnIndex]));
+      rows.forEach((rowIndex) => {
+        this.#areas[rowIndex][side === 'left' ? limitColumnIndex : limitColumnIndex + 1] = gridArea;
+        columns.forEach((columnIndex, i) => {
+          if (side === 'left') {
+            if (i <= index) {
+              this.#areas[rowIndex][columnIndex] = gridArea;
+            }
+          } else {
+            if (i >= index) {
+              this.#areas[rowIndex][columnIndex + 1] = gridArea;
+            }
+          }
+        });
+      });
+      this.#columns.splice(limitColumnIndex, 1, this.#columns[limitColumnIndex] - margin, margin);
+    }
+
+    window.setGridArea(gridArea);
+    this.#optimizationAreas();
   }
 
   createIndependentWindow(window: Window | null, panel: Panel, [x, y, w, h]: [number, number, number, number]) {
@@ -372,16 +428,16 @@ export class Config implements ConfigOptional {
 
   moveSide(window: Window, side: Side, [mxp, myp]: [number, number]) {
     const areas = this.#findAreas(window);
-    const { minRow, minColumn } = this.#findAreasBoundary(areas);
+    const { minRow, minColumn, width, height } = this.#findAreasBoundary(areas);
 
     if (side === 'top' || side === 'bottom') {
-      const fr = myp * [...new Set(areas.map((area) => area[1]))].reduce((p, c) => p + this.#rows[c], 0);
+      const fr = myp * height;
       const index = side === 'top' ? minRow : minRow + 1;
       this.#rows[index - 1] += fr;
       this.#rows[index] -= fr;
       this.#stringifyGridTemplateRows();
     } else {
-      const fr = mxp * [...new Set(areas.map((area) => area[0]))].reduce((p, c) => p + this.#columns[c], 0);
+      const fr = mxp * width;
       const index = side === 'left' ? minColumn : minColumn + 1;
       this.#columns[index - 1] += fr;
       this.#columns[index] -= fr;

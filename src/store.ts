@@ -76,7 +76,7 @@ export function dropHandleWindow({ window }: WindowConfig) {
     if (store.hoverWindowPosition === 'center') {
       store.config.mergeWindow(window, store.hoverWindow);
     } else {
-      store.config.createWindow(window, store.hoverWindowPosition);
+      store.config.createWindow(window, store.hoverWindow, store.hoverWindowPosition);
     }
     cancelHandleWindow();
   }

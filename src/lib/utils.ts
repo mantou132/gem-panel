@@ -38,3 +38,14 @@ export function detectPosition([ox, oy, w, h]: number[], [px, py]: [number, numb
   }
   return 'center';
 }
+
+export function findLimintPosition(arr: number[], limit: number) {
+  let total = 0;
+  for (let index = 0; index < arr.length; index++) {
+    total += arr[index];
+    if (total > limit) {
+      return { index, margin: total - limit };
+    }
+  }
+  return { index: arr.length, margin: total - limit };
+}
