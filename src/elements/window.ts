@@ -132,7 +132,7 @@ export class GemPanelWindowElement extends GemElement<State> {
 
   #onHeaderPan = ({ detail }: CustomEvent<PanEventDetail>) => {
     clearTimeout(store.windowPanTimer);
-    if (this.isGrid) {
+    if (this.window.isGridWindow()) {
       updateWindowType(this, this.getBoundingClientRect());
     } else {
       setWindowPanTimeout(this, this.window, [detail.clientX, detail.clientY]);
@@ -152,21 +152,16 @@ export class GemPanelWindowElement extends GemElement<State> {
     moveSide(this, dir, [detail.x / width, detail.y / height]);
   };
 
-  get isGrid() {
-    const { position, dimension } = this.window;
-    return !position && !dimension;
-  }
-
   mounted = () => {
     this.addEventListener('pointerdown', () => {
-      if (!this.isGrid) {
+      if (!this.window.isGridWindow()) {
         updateWindowZIndex(this);
       }
     });
   };
 
   render = () => {
-    const isGrid = this.isGrid;
+    const isGrid = this.window.isGridWindow();
     const { panels, gridArea, current = 0, position, dimension, zIndex } = this.window;
     const { panel, move, offsetX, clientX, parentOffsetX, independentWindow } = this.state;
     // Render the left panel to keep event listening

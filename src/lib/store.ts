@@ -53,11 +53,12 @@ export function setWindowPanTimeout(
       const hoverWindowEle = windowEles.find((e) => e !== currentWindowEle && e.window !== currentWindowEle?.window);
       if (hoverWindowEle) {
         const { x, y, width, height } = hoverWindowEle.getBoundingClientRect();
-        const isSmall = width < 4 * WINDOW_BORDER || height < 3 * WINDOW_BORDER;
+        const isCenterPostion =
+          !hoverWindowEle.window.isGridWindow() || width < 4 * WINDOW_BORDER || height < 3 * WINDOW_BORDER;
         updateStore(store, {
           hoverWindow: hoverWindowEle.window,
           panWindow: currentPanWindow,
-          hoverWindowPosition: isSmall
+          hoverWindowPosition: isCenterPostion
             ? 'center'
             : detectPosition([x, y, width, height], [clientX, clientY], WINDOW_BORDER),
         });

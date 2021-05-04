@@ -57,6 +57,10 @@ export class Window implements WindowOptional {
     }
   }
 
+  isGridWindow() {
+    return !this.position && !this.dimension;
+  }
+
   changeCurrent(index: number) {
     this.current = index;
   }
@@ -264,7 +268,7 @@ export class Config implements ConfigOptional {
 
   constructor(allWindows: Window[] = [], panels: Panel[] = [], optional: ConfigOptional = {}) {
     const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns } = optional;
-    const windows = allWindows.filter(({ position, dimension }) => !position && !dimension);
+    const windows = allWindows.filter((w) => w.isGridWindow());
     const dl = defaultLayout[windows.length - 1] || defaultLayout[0];
     this.gridTemplateAreas = gridTemplateAreas || dl.gridTemplateAreas;
     this.#parseAreas(this.gridTemplateAreas!);
