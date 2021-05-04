@@ -48,8 +48,8 @@ export class GemPanelElement extends GemElement {
       () => this.panelChange({ showPanels: this.showPanels, hiddenPanels: this.hiddenPanels }),
       () => [this.hiddenPanels.length],
     );
+    window.addEventListener('unload', this.unmounted);
     if (this.cache) {
-      window.addEventListener('unload', this.unmounted);
       const config = Config.parse(localStorage.getItem(this.#getKey()) || 'null');
       if (config) {
         updateConfig(config);
