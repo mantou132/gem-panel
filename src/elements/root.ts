@@ -10,11 +10,15 @@ import {
   Emitter,
 } from '@mantou/gem';
 import { Config, Panel } from '../lib/config';
-import { closePanel, openHiddenPanel, store, updateConfig } from '../lib/store';
+import { closePanel, openHiddenPanel, store, updateAppState } from '../lib/store';
+import { theme } from '../lib/theme';
+import { MenuItem } from './menu';
 
 import './window';
+import './menu';
 
 export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[] };
+export type OpenPanelMenuBeforeCallback = (panel: Panel) => MenuItem[];
 
 /**
  * @attr cache
@@ -24,6 +28,7 @@ export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[] };
 @customElement('gem-panel')
 @connectStore(store)
 export class GemPanelElement extends GemElement {
+  @property openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
   @property config: Config;
   @boolattribute cache: boolean;
   @attribute cacheVersion: string;
@@ -41,8 +46,8 @@ export class GemPanelElement extends GemElement {
 
   mounted = () => {
     this.effect(
-      () => updateConfig(this.config),
-      () => [this.config],
+      () => updateAppState({ config: this.config, openPanelMenuBefore: this.openPanelMenuBefore }),
+      () => [this.config, this.openPanelMenuBefore],
     );
     this.effect(
       () => this.panelChange({ showPanels: this.showPanels, hiddenPanels: this.hiddenPanels }),
@@ -52,7 +57,7 @@ export class GemPanelElement extends GemElement {
     if (this.cache) {
       const config = Config.parse(localStorage.getItem(this.#getKey()) || 'null');
       if (config) {
-        updateConfig(config);
+        updateAppState({ config });
       }
     }
   };
@@ -66,10 +71,12 @@ export class GemPanelElement extends GemElement {
     return html`
       <style>
         :host {
+          box-sizing: border-box;
           position: relative;
+          /* hidden side */
           overflow: hidden;
           display: grid;
-          gap: 2px;
+          gap: ${theme.windowGap};
           flex-grow: 1;
           height: 100%;
           grid-template-areas: ${gridTemplateAreas};
@@ -77,9 +84,14 @@ export class GemPanelElement extends GemElement {
           grid-template-columns: ${gridTemplateColumns};
           cursor: default;
           user-select: none;
+          background: ${theme.darkBackgroundColor};
+          color: ${theme.secondaryColor};
+          font-family: ${theme.fontFamily};
+          font-size: ${theme.fontSize};
         }
       </style>
       ${windows.map((window) => html`<gem-panel-window .window=${window}></gem-panel-window>`)}
+      <gem-panel-menu></gem-panel-menu>
     `;
   };
 

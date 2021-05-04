@@ -1,12 +1,14 @@
 import { createStore, updateStore } from '@mantou/gem';
 import { WINDOW_BORDER } from './const';
-import { Side, GemPanelWindowElement } from '../elements/window';
-import { HoverWindowPosition } from '../elements/window-mask';
 import { Config, Panel, Window } from './config';
 import { detectPosition } from './utils';
+import { Side, GemPanelWindowElement } from '../elements/window';
+import { HoverWindowPosition } from '../elements/window-mask';
+import { OpenPanelMenuBeforeCallback } from '../elements/root';
 
-type AppStore = {
+type AppState = {
   config: Config;
+  openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
   windowPanTimer: number;
   hoverWindow: null | Window;
   panWindow: null | Window;
@@ -15,7 +17,7 @@ type AppStore = {
 type WindowConfig = { window: Window };
 type PanelConfig = WindowConfig & { panel: Panel };
 
-export const store = createStore<AppStore>({
+export const store = createStore<AppState>({
   config: new Config(),
   windowPanTimer: 0,
   hoverWindow: null,
@@ -23,8 +25,8 @@ export const store = createStore<AppStore>({
   panWindow: null,
 });
 
-export function updateConfig(config: Config) {
-  updateStore(store, { config });
+export function updateAppState(state: Partial<AppState>) {
+  updateStore(store, state);
 }
 
 export function openHiddenPanel(panel: Panel) {
@@ -115,6 +117,11 @@ export function updateWindowType({ window }: WindowConfig, { x, y, width, height
 
 export function closePanel({ window, panel }: PanelConfig) {
   store.config.closePanel(window, panel);
+  updateStore(store, {});
+}
+
+export function closeWindow({ window }: WindowConfig) {
+  store.config.removeWindow(window);
   updateStore(store, {});
 }
 

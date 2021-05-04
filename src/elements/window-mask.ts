@@ -1,6 +1,7 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { WINDOW_BORDER } from '../lib/const';
 import { store } from '../lib/store';
+import { theme } from '../lib/theme';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 
@@ -21,13 +22,15 @@ export class GemPanelMaskElement extends GemElement {
         .bottom,
         .left {
           position: absolute;
+          box-sizing: border-box;
           z-index: 2;
           width: 100%;
           height: 100%;
-          box-sizing: border-box;
+          top: 0;
+          left: 0;
         }
         .center {
-          background: red;
+          background: ${theme.focusColor};
           opacity: 0.2;
         }
         .top,
@@ -35,19 +38,19 @@ export class GemPanelMaskElement extends GemElement {
         .bottom,
         .left {
           border: ${WINDOW_BORDER}px solid transparent;
-          opacity: 0.2;
+          opacity: 0.1;
         }
         .top {
-          border-top-color: red;
+          border-top-color: ${theme.focusColor};
         }
         .right {
-          border-right-color: red;
+          border-right-color: ${theme.focusColor};
         }
         .bottom {
-          border-bottom-color: red;
+          border-bottom-color: ${theme.focusColor};
         }
         .left {
-          border-left-color: red;
+          border-left-color: ${theme.focusColor};
         }
         .active {
           opacity: 0.4;

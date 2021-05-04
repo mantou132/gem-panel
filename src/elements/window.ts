@@ -22,6 +22,7 @@ import './panel-title';
 import './window-mask';
 import { GemPanelTitleElement } from './panel-title';
 import { distance } from '../lib/utils';
+import { theme } from '../lib/theme';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 export type Side = typeof sides[number];
@@ -92,7 +93,7 @@ export class GemPanelWindowElement extends GemElement<State> {
     target.setPointerCapture(evt.pointerId);
     // first move
     if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < 4) return;
-    if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > 10) {
+    if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > 20) {
       const { width, height } = this.getBoundingClientRect();
       const independentWindow = independentPanel(this, panel, [
         evt.clientX - offsetX,
@@ -211,42 +212,55 @@ export class GemPanelWindowElement extends GemElement<State> {
         :host {
           display: flex;
           flex-direction: column;
-          background: white;
+          background: ${theme.backgroundColor};
+          gap: ${theme.windowGap};
           position: ${isGrid ? 'relative' : 'absolute'};
           left: ${position?.[0]}px;
           top: ${position?.[1]}px;
           width: ${dimension?.[0]}px;
           height: ${dimension?.[1]}px;
-          grid-area: ${gridArea};
+          grid-area: ${gridArea || 'none'};
           z-index: ${isGrid ? 0 : zIndex};
           overflow: ${isGrid ? 'visible' : 'hidden'};
-          box-shadow: ${isGrid ? 'none' : '0px 1px 3px rgba(0, 0, 0, .4)'};
+          box-shadow: ${isGrid ? 'none' : '0 0.3em 1em rgba(0, 0, 0, .4)'};
           opacity: ${store.panWindow === this.window ? 0.5 : 1};
+          border-radius: ${isGrid ? '0' : '2px'};
+        }
+        :host::after {
+          content: ${isGrid ? 'none' : '""'};
+          pointer-events: none;
+          border-radius: inherit;
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          left: 0;
+          top: 0;
+          box-sizing: border-box;
+          border: 1px solid ${theme.borderColor};
+        }
+        .bar {
+          height: 0.8em;
+          background: ${theme.darkBackgroundColor};
+          margin-bottom: calc(0px - 0.2em - ${theme.windowGap});
         }
         .header {
+          padding: ${theme.windowGap};
           overflow: hidden;
           position: relative;
           display: flex;
           flex-shrink: 0;
+          gap: 1.8em;
         }
         .title {
-          background: white;
-          border: 1px solid transparent;
-          border-bottom: none;
-          flex-shrink: 0;
-        }
-        .content {
-          overflow: auto;
           position: relative;
-          border: 1px solid red;
-          flex-grow: 1;
-          height: 0;
-          margin-top: -1px;
+          background: ${theme.backgroundColor};
+          flex-shrink: 0;
+          border-bottom: 2px solid transparent;
         }
         .title.active {
           z-index: 1;
-          position: relative;
-          border-color: red;
+          color: ${theme.primaryColor};
+          border-color: currentColor;
         }
         .title.hidden {
           opacity: 0;
@@ -255,9 +269,18 @@ export class GemPanelWindowElement extends GemElement<State> {
         .title.temp {
           pointer-events: none;
           position: absolute;
+          top: ${theme.windowGap};
           left: 0;
-          bottom: 0;
           transform: translateX(${clientX - offsetX - parentOffsetX}px);
+          border-bottom-color: ${theme.focusColor};
+        }
+        .content {
+          padding: 0 ${theme.windowGap};
+          overflow: auto;
+          position: relative;
+          flex-grow: 1;
+          height: 0;
+          scrollbar-width: none;
         }
         .top,
         .right,
@@ -265,20 +288,20 @@ export class GemPanelWindowElement extends GemElement<State> {
         .left {
           position: absolute;
         }
-        :is(.top, .bottom):hover {
+        :is(.top, .bottom) {
           cursor: row-resize;
         }
-        :is(.right, .left):hover {
+        :is(.right, .left) {
           cursor: col-resize;
         }
         .top,
         .bottom {
           width: 100%;
-          height: 2px;
+          height: ${theme.windowGap};
         }
         .right,
         .left {
-          width: 2px;
+          width: ${theme.windowGap};
           height: 100%;
         }
         .top {
@@ -333,6 +356,7 @@ export class GemPanelWindowElement extends GemElement<State> {
             `,
           )
         : ''}
+      ${isGrid ? '' : html`<gem-gesture class="bar" @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}></gem-gesture>`}
       <gem-gesture class="header" @wheel=${this.#onHeaderWheel} @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}>
         ${panels.concat(independentPanel || []).map(
           (p, index) =>
