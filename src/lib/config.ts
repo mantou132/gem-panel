@@ -172,11 +172,11 @@ export class Config implements ConfigOptional {
 
   #findAreasBoundary = (areas: [number, number][]) => {
     const rows = [...new Set(areas.map((area) => area[1]))];
-    const height = rows.map((rowIndex) => this.#rows[rowIndex]).reduce((p, c) => p + c);
+    const height = rows.map((rowIndex) => this.#rows[rowIndex]).reduce((p, c) => p + c, 0);
     const minRow = Math.min(...rows);
     const maxRow = Math.max(...rows);
     const columns = [...new Set(areas.map((area) => area[0]))];
-    const width = columns.map((columnIndex) => this.#columns[columnIndex]).reduce((p, c) => p + c);
+    const width = columns.map((columnIndex) => this.#columns[columnIndex]).reduce((p, c) => p + c, 0);
     const minColumn = Math.min(...columns);
     const maxColumn = Math.max(...columns);
     return { minRow, maxRow, minColumn, maxColumn, rows, columns, height, width };
