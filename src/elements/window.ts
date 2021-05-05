@@ -24,6 +24,12 @@ import './window-mask';
 import { GemPanelTitleElement } from './panel-title';
 import { distance } from '../lib/utils';
 import { theme } from '../lib/theme';
+import {
+  CANCEL_WINDOW_DRAG_DISTANCE,
+  ENTWE_PANEL_SORT_DISTANCE,
+  NEWWINDOW_FROM_PANEL_Y_OFFSET,
+  WINDOW_TITLEBAR_HEIGHT,
+} from '../lib/const';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 export type Side = typeof sides[number];
@@ -94,12 +100,12 @@ export class GemPanelWindowElement extends GemElement<State> {
     const target = evt.currentTarget as HTMLElement;
     target.setPointerCapture(evt.pointerId);
     // first move
-    if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < 4) return;
-    if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > 20) {
+    if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < ENTWE_PANEL_SORT_DISTANCE) return;
+    if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > NEWWINDOW_FROM_PANEL_Y_OFFSET) {
       const { width, height } = this.getBoundingClientRect();
       const independentWindow = independentPanel(this, panel, [
         evt.clientX - offsetX,
-        evt.clientY - offsetY,
+        evt.clientY - offsetY - WINDOW_TITLEBAR_HEIGHT,
         width,
         height,
       ]);
@@ -144,7 +150,7 @@ export class GemPanelWindowElement extends GemElement<State> {
       updateWindowType(this, this.getBoundingClientRect());
     } else {
       setWindowPanTimeout(this, this.window, [detail.clientX, detail.clientY]);
-      if (distance(detail.x, detail.y) > 4) {
+      if (distance(detail.x, detail.y) > CANCEL_WINDOW_DRAG_DISTANCE) {
         cancelHandleWindow();
       }
       updateWindowPosition(this, [detail.x, detail.y]);
@@ -237,7 +243,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           overflow: ${isGrid ? 'visible' : 'hidden'};
           box-shadow: ${isGrid ? 'none' : '0 0.3em 1em rgba(0, 0, 0, .4)'};
           opacity: ${store.panWindow === this.window ? 0.5 : 1};
-          border-radius: ${isGrid ? '0' : '2px'};
+          border-radius: ${isGrid ? '0' : '4px'};
         }
         :host::after {
           content: ${isGrid ? 'none' : '""'};
@@ -252,9 +258,9 @@ export class GemPanelWindowElement extends GemElement<State> {
           border: 1px solid ${theme.borderColor};
         }
         .bar {
-          height: 0.8em;
+          height: ${WINDOW_TITLEBAR_HEIGHT}px;
           background: ${theme.darkBackgroundColor};
-          margin-bottom: calc(0px - 0.2em - ${theme.panelContentGap});
+          margin-bottom: calc(0px - ${theme.panelContentGap});
         }
         .flex {
           display: flex;
@@ -342,8 +348,8 @@ export class GemPanelWindowElement extends GemElement<State> {
         .bottom-right,
         .bottom-left {
           position: absolute;
-          width: 6px;
-          height: 6px;
+          width: 8px;
+          height: 8px;
           z-index: 1;
         }
         .top-left {

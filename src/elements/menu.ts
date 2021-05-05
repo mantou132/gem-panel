@@ -65,7 +65,7 @@ export class GemPanelMenuElement extends GemElement {
           color: ${theme.secondaryColor};
           border: 1px solid ${theme.borderColor};
           box-shadow: 0 0.3em 1em rgba(0, 0, 0, 0.4);
-          border-radius: 2px;
+          border-radius: 4px;
           top: ${menuStore.y + 4}px;
           left: min(${menuStore.x}px, calc(100vw - 200px));
           overflow: auto;
