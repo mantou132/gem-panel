@@ -1,6 +1,18 @@
 A custom element`<gem-panel>`, let you easily create layout similar to Adobe After Effects.
 
-## example
+[Dome](https://gem-panel.vercel.app/)
+
+## Features
+
+- Drag to adjust the grid
+- Drag to move the panel and window
+- Drag and drop to adjust the panel sorting
+- Add commands to the panel
+- Cache layout
+- Custom theme
+- Typescript support
+
+## Example
 
 ```ts
 import { render, html } from '@mantou/gem';
@@ -28,7 +40,12 @@ render(
         height: 100%;
       }
     </style>
-    <gem-panel .config=${config}></gem-panel>
+    <gem-panel
+      .theme=${{ backgroundColor: 'red' }}
+      .config=${config}
+      .openPanelMenuBefore=${(panel) => []}
+      cache
+    ></gem-panel>
   `,
   document.body,
 );
@@ -40,7 +57,5 @@ render(
 # install dependencies
 npm i
 # development
-npm run test
-# build project
 npm run example
 ```
