@@ -45,9 +45,28 @@ export class GemPanelElement extends GemElement {
     Object.assign(this, optionnal);
   }
 
-  #getKey = () => {
-    return `${this.tagName}-${this.cacheVersion}`;
+  #getKey = (cacheVersion = this.cacheVersion) => {
+    // Modify when it is not compatible
+    const v = 1;
+    return `${this.tagName}-${v}-${cacheVersion}`;
   };
+
+  #loadCache = () => {
+    if (this.cache) {
+      const config = Config.parse(localStorage.getItem(this.#getKey()) || 'null');
+      if (config) {
+        updateAppState({ config });
+      }
+    }
+  };
+
+  #cacheAs = (cacheVersion = this.cacheVersion) => {
+    if (this.cache) {
+      localStorage.setItem(this.#getKey(cacheVersion), JSON.stringify(store.config));
+    }
+  };
+
+  #save = () => this.#cacheAs();
 
   mounted = () => {
     this.effect(
@@ -62,17 +81,20 @@ export class GemPanelElement extends GemElement {
       () => this.panelChange({ showPanels: this.showPanels, hiddenPanels: this.hiddenPanels }),
       () => [this.hiddenPanels.length],
     );
-    window.addEventListener('unload', this.unmounted);
-    if (this.cache) {
-      const config = Config.parse(localStorage.getItem(this.#getKey()) || 'null');
-      if (config) {
-        updateAppState({ config });
-      }
-    }
-  };
+    this.effect(
+      (_, old) => {
+        if (old) {
+          this.#cacheAs(old[0]);
+        }
+        this.#loadCache();
+      },
+      () => [this.cacheVersion],
+    );
 
-  unmounted = () => {
-    this.cache && localStorage.setItem(this.#getKey(), JSON.stringify(store.config));
+    window.addEventListener('unload', this.#save);
+    return () => {
+      window.removeEventListener('unload', this.#save);
+    };
   };
 
   render = () => {

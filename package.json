@@ -30,7 +30,7 @@
   "author": "mantou132",
   "license": "ISC",
   "dependencies": {
-    "@mantou/gem": "^1.2.0"
+    "@mantou/gem": "^1.2.1"
   },
   "devDependencies": {
     "@open-wc/testing": "^2.5.33",
