@@ -427,6 +427,11 @@ export class Config implements ConfigOptional {
     this.createIndependentWindow(null, panel, [...getPosition(DEFAULT_POSITION), ...DEFAULT_DIMENSION]);
   }
 
+  openPanelInWindow(panel: Panel, window: Window) {
+    window.changeCurrent(window.panels.push(panel) - 1);
+    removeItem(this.panels, panel);
+  }
+
   closePanel(window: Window, panel: Panel) {
     const panelIndex = window.panels.findIndex((e) => e === panel);
     const closerIndex = getNewFocusElementIndex(window.panels, window.current || 0, panelIndex);

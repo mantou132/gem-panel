@@ -34,6 +34,11 @@ export function openHiddenPanel(panel: Panel) {
   updateStore(store, {});
 }
 
+export function openPanelInWindow(panel: Panel, window: Window) {
+  store.config.openPanelInWindow(panel, window);
+  updateStore(store, {});
+}
+
 export function independentPanel({ window }: WindowConfig, panel: Panel, rect: [number, number, number, number]) {
   const newWindow = store.config.createIndependentWindow(window, panel, rect);
   updateStore(store, {});

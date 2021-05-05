@@ -1,6 +1,6 @@
 import { render, html } from '@mantou/gem';
 
-import { Config, Panel, Window } from '../../';
+import { Config, Panel, Window, MenuItem, GemPanelElement } from '../../';
 
 const panel1 = new Panel('p1 title', html`<div style="height: 1000px">p1 content</div>`);
 const panel2 = new Panel('p2 title', html`p2 content`);
@@ -20,6 +20,20 @@ const window5 = new Window([panel8]);
 const window6 = new Window([panel9]);
 const config = new Config([window4, window1, window2, window3, window5, window6], [panel3]);
 
+const openPanelMenuBefore = (_: Panel, window: Window) => {
+  const menus: MenuItem[] = [];
+  const gemPanelEle = document.querySelector<GemPanelElement>('gem-panel');
+  if (gemPanelEle) {
+    gemPanelEle.hiddenPanels.forEach((panel) => {
+      menus.push({
+        text: `open "${panel.title}"`,
+        handle: () => gemPanelEle.openPanelInWindow(panel, window),
+      });
+    });
+  }
+  return menus;
+};
+
 render(
   html`
     <style>
@@ -30,7 +44,13 @@ render(
         height: 100%;
       }
     </style>
-    <gem-panel .config=${config}></gem-panel>
+    <gem-panel
+      .openPanelMenuBefore=${openPanelMenuBefore}
+      .theme=${{}}
+      .config=${config}
+      ?cache=${false}
+      cache-version=""
+    ></gem-panel>
   `,
   document.body,
 );

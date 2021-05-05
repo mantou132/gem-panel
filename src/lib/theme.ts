@@ -12,3 +12,5 @@ export const theme = createTheme({
   windowGap: '4px',
   panelContentGap: '4px',
 });
+
+export type Theme = Partial<typeof theme>;

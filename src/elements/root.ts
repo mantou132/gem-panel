@@ -10,8 +10,8 @@ import {
   Emitter,
 } from '@mantou/gem';
 import { updateTheme } from '@mantou/gem/helper/theme';
-import { Config, Panel } from '../lib/config';
-import { closePanel, openHiddenPanel, store, updateAppState } from '../lib/store';
+import { Config, Panel, Window } from '../lib/config';
+import { closePanel, openHiddenPanel, openPanelInWindow, store, updateAppState } from '../lib/store';
 import { theme } from '../lib/theme';
 import { MenuItem } from './menu';
 
@@ -19,7 +19,7 @@ import './window';
 import './menu';
 
 export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[] };
-export type OpenPanelMenuBeforeCallback = (panel: Panel) => MenuItem[];
+export type OpenPanelMenuBeforeCallback = (panel: Panel, window: Window) => MenuItem[];
 
 /**
  * @attr cache
@@ -67,6 +67,11 @@ export class GemPanelElement extends GemElement {
   };
 
   #save = () => this.#cacheAs();
+
+  #queryPanel = (arg: string | Panel, panels: Panel[]) => {
+    const title = typeof arg === 'string' ? arg : arg.title;
+    return panels.find((e) => e.title === title);
+  };
 
   mounted = () => {
     this.effect(
@@ -139,23 +144,19 @@ export class GemPanelElement extends GemElement {
   }
 
   openHiddenPanel(arg: string | Panel) {
-    let panel: Panel | undefined;
-    if (typeof arg === 'string') {
-      panel = this.hiddenPanels.find((e) => e.title === arg);
-    } else {
-      panel = arg;
-    }
+    const panel = this.#queryPanel(arg, this.hiddenPanels);
     if (!panel) return;
     openHiddenPanel(panel);
   }
 
+  openPanelInWindow(arg: string | Panel, window: Window) {
+    const panel = this.#queryPanel(arg, this.hiddenPanels);
+    if (!panel) return;
+    openPanelInWindow(panel, window);
+  }
+
   closePanel(arg: string | Panel) {
-    let panel: Panel | undefined;
-    if (typeof arg === 'string') {
-      panel = this.showPanels.find((e) => (e.title = arg));
-    } else {
-      panel = arg;
-    }
+    const panel = this.#queryPanel(arg, this.showPanels);
     if (!panel) return;
     const window = this.windows.find((e) => e.panels.includes(panel as Panel));
     if (!window) return;

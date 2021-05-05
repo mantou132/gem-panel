@@ -21,7 +21,7 @@ export class GemPanelTitleElement extends GemElement {
         handle: () => closeWindow({ window }),
       },
     ];
-    openMenu(evt.x, evt.y, [...(store.openPanelMenuBefore?.(panel) || []), ...defaultMenus]);
+    openMenu(evt.x, evt.y, [...(store.openPanelMenuBefore?.(panel, window) || []), ...defaultMenus]);
   };
 
   render = () => {
