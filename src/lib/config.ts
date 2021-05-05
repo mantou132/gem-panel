@@ -1,6 +1,7 @@
 import { TemplateResult, html, randomStr } from '@mantou/gem';
+
+import { Side } from '../elements/window-handle';
 import { WINDOW_DEFAULT_DIMENSION, WINDOW_DEFAULT_GAP, WINDOW_DEFAULT_POSITION } from './const';
-import { Side } from '../elements/window';
 import { findLimintPosition, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
 type PannelContent = TemplateResult | string;

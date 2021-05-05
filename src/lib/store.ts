@@ -2,8 +2,9 @@ import { createStore, updateStore } from '@mantou/gem';
 import { WINDOW_HOVER_BORDER } from './const';
 import { Config, Panel, Window } from './config';
 import { detectPosition } from './utils';
-import { Side, GemPanelWindowElement } from '../elements/window';
+import { GemPanelWindowElement } from '../elements/window';
 import { HoverWindowPosition } from '../elements/window-mask';
+import { Side } from '../elements/window-handle';
 import { OpenPanelMenuBeforeCallback } from '../elements/root';
 
 type AppState = {
