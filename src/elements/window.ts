@@ -269,6 +269,10 @@ export class GemPanelWindowElement extends GemElement<State> {
           width: 0;
           flex-grow: 1;
           overflow: auto;
+          scrollbar-width: none;
+        }
+        .widthgrow::-webkit-scrollbar {
+          width: 0;
         }
         .header {
           padding: ${theme.panelContentGap};
@@ -307,7 +311,6 @@ export class GemPanelWindowElement extends GemElement<State> {
           position: relative;
           height: 0;
           flex-grow: 1;
-          scrollbar-width: none;
         }
         .top,
         .right,
