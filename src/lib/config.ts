@@ -1,11 +1,9 @@
 import { TemplateResult, html, randomStr } from '@mantou/gem';
-import { DEFAULT_DIMENSION, DEFAULT_GAP, DEFAULT_POSITION } from './const';
+import { WINDOW_DEFAULT_DIMENSION, WINDOW_DEFAULT_GAP, WINDOW_DEFAULT_POSITION } from './const';
 import { Side } from '../elements/window';
 import { findLimintPosition, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
 type PannelContent = TemplateResult | string;
-
-let id = 1;
 
 export class Panel {
   title: string;
@@ -52,8 +50,8 @@ export class Window implements WindowOptional {
     this.panels = panels;
     this.zIndex = zIndex;
     if (position || dimension) {
-      this.position = position || DEFAULT_POSITION;
-      this.dimension = dimension || DEFAULT_DIMENSION;
+      this.position = position || WINDOW_DEFAULT_POSITION;
+      this.dimension = dimension || WINDOW_DEFAULT_DIMENSION;
     }
   }
 
@@ -259,6 +257,8 @@ export class Config implements ConfigOptional {
     this.gridTemplateColumns = this.#stringifyGridTemplateAxis(this.#columns);
   };
 
+  #getNewGridArea = () => `a${randomStr()}${Config.id++}`;
+
   static parse(str: string) {
     const obj = JSON.parse(str) as Partial<Config> | null;
     if (!obj) return;
@@ -269,6 +269,7 @@ export class Config implements ConfigOptional {
       gridTemplateColumns,
     });
   }
+  static id = 1;
 
   constructor(allWindows: Window[] = [], panels: Panel[] = [], optional: ConfigOptional = {}) {
     const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns } = optional;
@@ -362,7 +363,7 @@ export class Config implements ConfigOptional {
   createWindow(window: Window, hoverWindow: Window, side: Side) {
     const areas = this.#findAreas(hoverWindow);
     const { rows, columns, width, height } = this.#findAreasBoundary(areas);
-    const gridArea = `a${randomStr()}${id++}`;
+    const gridArea = this.#getNewGridArea();
 
     if (side === 'top' || side === 'bottom') {
       const heightRows = rows.map((rowIndex) => this.#rows[rowIndex]);
@@ -422,9 +423,9 @@ export class Config implements ConfigOptional {
     removeItem(this.panels, panel);
     const getPosition = (position: [number, number]): [number, number] => {
       const window = this.windows.find((w) => w.position && isEqualArray(w.position, position));
-      return window ? getPosition([position[0] + DEFAULT_GAP, position[1] + DEFAULT_GAP]) : position;
+      return window ? getPosition([position[0] + WINDOW_DEFAULT_GAP, position[1] + WINDOW_DEFAULT_GAP]) : position;
     };
-    this.createIndependentWindow(null, panel, [...getPosition(DEFAULT_POSITION), ...DEFAULT_DIMENSION]);
+    this.createIndependentWindow(null, panel, [...getPosition(WINDOW_DEFAULT_POSITION), ...WINDOW_DEFAULT_DIMENSION]);
   }
 
   openPanelInWindow(panel: Panel, window: Window) {

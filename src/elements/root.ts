@@ -11,11 +11,11 @@ import {
 } from '@mantou/gem';
 import { updateTheme } from '@mantou/gem/helper/theme';
 import { Config, Panel, Window } from '../lib/config';
-import { closePanel, openHiddenPanel, openPanelInWindow, store, updateAppState } from '../lib/store';
+import { closePanel, closeWindow, openHiddenPanel, openPanelInWindow, store, updateAppState } from '../lib/store';
 import { theme } from '../lib/theme';
+import { isOutside } from '../lib/utils';
 import { MenuItem } from './menu';
-
-import './window';
+import { GemPanelWindowElement, windowTagName } from './window';
 import './menu';
 
 export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[] };
@@ -73,7 +73,25 @@ export class GemPanelElement extends GemElement {
     return panels.find((e) => e.title === title);
   };
 
+  #cleanOutsideWindow = () => {
+    const rect = this.getBoundingClientRect();
+    [...this.shadowRoot!.querySelectorAll<GemPanelWindowElement>(windowTagName)]
+      .filter((wEle) => !wEle.window.isGridWindow())
+      .forEach((ele) => {
+        const targetRect = ele.getBoundingClientRect();
+        if (isOutside(rect, targetRect)) {
+          closeWindow(ele);
+        }
+      });
+  };
+
+  #onResize = () => {
+    const resizeObserver = new ResizeObserver(this.#cleanOutsideWindow);
+    resizeObserver.observe(this);
+  };
+
   mounted = () => {
+    this.#onResize();
     this.effect(
       () => updateAppState({ config: this.config, openPanelMenuBefore: this.openPanelMenuBefore }),
       () => [this.config, this.openPanelMenuBefore],

@@ -1,5 +1,5 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
-import { WINDOW_BORDER } from '../lib/const';
+import { WINDOW_HOVER_BORDER } from '../lib/const';
 import { store } from '../lib/store';
 import { theme } from '../lib/theme';
 
@@ -37,7 +37,7 @@ export class GemPanelMaskElement extends GemElement {
         .right,
         .bottom,
         .left {
-          border: ${WINDOW_BORDER}px solid transparent;
+          border: ${WINDOW_HOVER_BORDER}px solid transparent;
           opacity: 0.1;
         }
         .top {

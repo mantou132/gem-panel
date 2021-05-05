@@ -1,5 +1,5 @@
 import { createStore, updateStore } from '@mantou/gem';
-import { WINDOW_BORDER } from './const';
+import { WINDOW_HOVER_BORDER } from './const';
 import { Config, Panel, Window } from './config';
 import { detectPosition } from './utils';
 import { Side, GemPanelWindowElement } from '../elements/window';
@@ -61,13 +61,13 @@ export function setWindowPanTimeout(
       if (hoverWindowEle) {
         const { x, y, width, height } = hoverWindowEle.getBoundingClientRect();
         const isCenterPostion =
-          !hoverWindowEle.window.isGridWindow() || width < 4 * WINDOW_BORDER || height < 3 * WINDOW_BORDER;
+          !hoverWindowEle.window.isGridWindow() || width < 4 * WINDOW_HOVER_BORDER || height < 3 * WINDOW_HOVER_BORDER;
         updateStore(store, {
           hoverWindow: hoverWindowEle.window,
           panWindow: currentPanWindow,
           hoverWindowPosition: isCenterPostion
             ? 'center'
-            : detectPosition([x, y, width, height], [clientX, clientY], WINDOW_BORDER),
+            : detectPosition([x, y, width, height], [clientX, clientY], WINDOW_HOVER_BORDER),
         });
       }
     }, 400),

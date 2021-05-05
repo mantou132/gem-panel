@@ -16,7 +16,7 @@
     "experimentalDecorators": true,
     "target": "es6",
     "skipLibCheck": true,
-    "lib": ["es2020", "dom"]
+    "lib": ["es2020", "dom", "DOM.Iterable"]
   },
   "include": ["src"],
   "exclude": []

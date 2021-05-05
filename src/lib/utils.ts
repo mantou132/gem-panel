@@ -49,3 +49,15 @@ export function findLimintPosition(arr: number[], limit: number) {
   }
   return { index: arr.length, margin: total - limit };
 }
+
+export function isOutside(rect: DOMRect, target: DOMRect) {
+  if (
+    target.x > rect.x + rect.width ||
+    target.y > rect.y + rect.height ||
+    rect.x > target.x + target.width ||
+    rect.y > target.y + target.height
+  ) {
+    return true;
+  }
+  return false;
+}

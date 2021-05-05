@@ -18,24 +18,26 @@ import {
   independentPanel,
   updateWindowDimension,
 } from '../lib/store';
-
-import './panel-title';
-import './window-mask';
 import { GemPanelTitleElement } from './panel-title';
 import { distance } from '../lib/utils';
 import { theme } from '../lib/theme';
 import {
-  CANCEL_WINDOW_DRAG_DISTANCE,
+  CANCEL_WINDOW_DRAGOVER_DISTANCE,
   ENTWE_PANEL_SORT_DISTANCE,
   NEWWINDOW_FROM_PANEL_Y_OFFSET,
   WINDOW_TITLEBAR_HEIGHT,
 } from '../lib/const';
+
+import './panel-title';
+import './window-mask';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 export type Side = typeof sides[number];
 
 const corners = ['top-left', 'top-right', 'bottom-right', 'bottom-left'] as const;
 export type Corner = typeof corners[number];
+
+export const windowTagName = 'gem-panel-window';
 
 type State = {
   independentWindow: Window | null; // store?
@@ -49,7 +51,7 @@ type State = {
   clientY: number;
 };
 
-@customElement('gem-panel-window')
+@customElement(windowTagName)
 @connectStore(store)
 export class GemPanelWindowElement extends GemElement<State> {
   window: Window;
@@ -150,7 +152,7 @@ export class GemPanelWindowElement extends GemElement<State> {
       updateWindowType(this, this.getBoundingClientRect());
     } else {
       setWindowPanTimeout(this, this.window, [detail.clientX, detail.clientY]);
-      if (distance(detail.x, detail.y) > CANCEL_WINDOW_DRAG_DISTANCE) {
+      if (distance(detail.x, detail.y) > CANCEL_WINDOW_DRAGOVER_DISTANCE) {
         cancelHandleWindow();
       }
       updateWindowPosition(this, [detail.x, detail.y]);
