@@ -157,7 +157,7 @@ export class Config implements ConfigOptional {
   // hidden
   panels: Panel[];
 
-  #areas: string[][];
+  #areas: string[][]; // Optimization: Flip the object to modify it
   #rows: number[];
   #columns: number[];
 
@@ -197,6 +197,12 @@ export class Config implements ConfigOptional {
     this.gridTemplateAreas = this.#areas.map((row) => `"${row.join(' ')}"`).join(' ');
   };
 
+  #stringifyGridTemplate = () => {
+    this.#stringifyGridTemplateAreas();
+    this.#stringifyGridTemplateRows();
+    this.#stringifyGridTemplateColumns();
+  };
+
   #optimizationAreas = () => {
     const optimizationRow = () => {
       for (let i = 0; i < this.#areas.length - 1; i++) {
@@ -226,9 +232,7 @@ export class Config implements ConfigOptional {
       }
     };
     optimizationColumn();
-    this.#stringifyGridTemplateAreas();
-    this.#stringifyGridTemplateRows();
-    this.#stringifyGridTemplateColumns();
+    this.#stringifyGridTemplate();
   };
 
   #parseRows = (gridTemplateRows: string) => {
@@ -245,14 +249,14 @@ export class Config implements ConfigOptional {
       .filter((e) => e !== '')
       .map(parseFloat);
 
-  #stringifyGridTemplate = (arr: number[]) => arr.map((e) => `${e}fr`).join(' ');
+  #stringifyGridTemplateAxis = (arr: number[]) => arr.map((e) => `${e}fr`).join(' ');
 
   #stringifyGridTemplateRows = () => {
-    this.gridTemplateRows = this.#stringifyGridTemplate(this.#rows);
+    this.gridTemplateRows = this.#stringifyGridTemplateAxis(this.#rows);
   };
 
   #stringifyGridTemplateColumns = () => {
-    this.gridTemplateColumns = this.#stringifyGridTemplate(this.#columns);
+    this.gridTemplateColumns = this.#stringifyGridTemplateAxis(this.#columns);
   };
 
   static parse(str: string) {
@@ -403,7 +407,7 @@ export class Config implements ConfigOptional {
     }
 
     window.setGridArea(gridArea);
-    this.#optimizationAreas();
+    this.#stringifyGridTemplate();
   }
 
   createIndependentWindow(window: Window | null, panel: Panel, [x, y, w, h]: [number, number, number, number]) {
@@ -435,22 +439,73 @@ export class Config implements ConfigOptional {
     }
   }
 
-  moveSide(window: Window, side: Side, [mxp, myp]: [number, number]) {
-    const areas = this.#findAreas(window);
-    const { minRow, minColumn, width, height } = this.#findAreasBoundary(areas);
+  // window gap cause shake
+  moveSide(window: Window, side: Side, [movementXPercentage, movementYPercentage]: number[]) {
+    const { minRow, minColumn, maxRow, maxColumn, width, height } = this.#findAreasBoundary(this.#findAreas(window));
 
     if (side === 'top' || side === 'bottom') {
-      const fr = myp * height;
-      const index = side === 'top' ? minRow : minRow + 1;
-      this.#rows[index - 1] += fr;
-      this.#rows[index] -= fr;
-      this.#stringifyGridTemplateRows();
+      const movementY = movementYPercentage * height;
+      const index = side === 'top' ? minRow : maxRow + 1;
+      const newRow = this.#rows[index - 1] + movementY;
+      const newNextRow = this.#rows[index] - movementY;
+      if (newRow < 0) {
+        this.#rows[index - 2] += newRow;
+        this.#rows[index - 1] = -newRow;
+        this.#rows[index] = newNextRow + newRow;
+        this.#areas[index - 1].forEach((_, columnIndex) => {
+          if (columnIndex < minColumn || columnIndex > maxColumn) {
+            this.#areas[index - 1][columnIndex] = this.#areas[index - 2][columnIndex];
+          } else {
+            this.#areas[index - 1][columnIndex] = this.#areas[index][columnIndex];
+          }
+        });
+      } else if (newNextRow < 0) {
+        this.#rows[index - 1] = newRow + newNextRow;
+        this.#rows[index] = -newNextRow;
+        this.#rows[index + 1] += newNextRow;
+        this.#areas[index].forEach((_, columnIndex) => {
+          if (columnIndex < minColumn || columnIndex > maxColumn) {
+            this.#areas[index][columnIndex] = this.#areas[index + 1][columnIndex];
+          } else {
+            this.#areas[index][columnIndex] = this.#areas[index - 1][columnIndex];
+          }
+        });
+      } else {
+        this.#rows[index - 1] = newRow;
+        this.#rows[index] = newNextRow;
+      }
     } else {
-      const fr = mxp * width;
-      const index = side === 'left' ? minColumn : minColumn + 1;
-      this.#columns[index - 1] += fr;
-      this.#columns[index] -= fr;
-      this.#stringifyGridTemplateColumns();
+      const movementX = movementXPercentage * width;
+      const index = side === 'left' ? minColumn : maxColumn + 1;
+      const newColumn = this.#columns[index - 1] + movementX;
+      const newNextColumn = this.#columns[index] - movementX;
+      if (newColumn < 0) {
+        this.#columns[index - 2] += newColumn;
+        this.#columns[index - 1] = -newColumn;
+        this.#columns[index] = newNextColumn + newColumn;
+        this.#areas.forEach((_, rowIndex) => {
+          if (rowIndex < minRow || rowIndex > maxRow) {
+            this.#areas[rowIndex][index - 1] = this.#areas[rowIndex][index - 2];
+          } else {
+            this.#areas[rowIndex][index - 1] = this.#areas[rowIndex][index];
+          }
+        });
+      } else if (newNextColumn < 0) {
+        this.#columns[index - 1] = newColumn + newNextColumn;
+        this.#columns[index] = -newNextColumn;
+        this.#columns[index + 1] += newNextColumn;
+        this.#areas.forEach((_, rowIndex) => {
+          if (rowIndex < minRow || rowIndex > maxRow) {
+            this.#areas[rowIndex][index] = this.#areas[rowIndex][index + 1];
+          } else {
+            this.#areas[rowIndex][index] = this.#areas[rowIndex][index - 1];
+          }
+        });
+      } else {
+        this.#columns[index - 1] += movementX;
+        this.#columns[index] -= movementX;
+      }
     }
+    this.#stringifyGridTemplate();
   }
 }
