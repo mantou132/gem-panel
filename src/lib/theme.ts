@@ -10,4 +10,5 @@ export const theme = createTheme({
   backgroundColor: '#222222',
   darkBackgroundColor: '#151515',
   windowGap: '4px',
+  panelContentGap: '4px',
 });

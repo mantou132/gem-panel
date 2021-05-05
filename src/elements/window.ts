@@ -213,7 +213,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           display: flex;
           flex-direction: column;
           background: ${theme.backgroundColor};
-          gap: ${theme.windowGap};
+          gap: ${theme.panelContentGap};
           position: ${isGrid ? 'relative' : 'absolute'};
           left: ${position?.[0]}px;
           top: ${position?.[1]}px;
@@ -241,7 +241,7 @@ export class GemPanelWindowElement extends GemElement<State> {
         .bar {
           height: 0.8em;
           background: ${theme.darkBackgroundColor};
-          margin-bottom: calc(0px - 0.2em - ${theme.windowGap});
+          margin-bottom: calc(0px - 0.2em - ${theme.panelContentGap});
         }
         .flex {
           display: flex;
@@ -252,7 +252,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           overflow: auto;
         }
         .header {
-          padding: ${theme.windowGap};
+          padding: ${theme.panelContentGap};
           overflow: hidden;
           position: relative;
           display: flex;
@@ -277,13 +277,13 @@ export class GemPanelWindowElement extends GemElement<State> {
         .title.temp {
           pointer-events: none;
           position: absolute;
-          top: ${theme.windowGap};
+          top: ${theme.panelContentGap};
           left: 0;
           transform: translateX(${clientX - offsetX - parentOffsetX}px);
           border-bottom-color: ${theme.focusColor};
         }
         .content {
-          padding: ${theme.windowGap};
+          padding: ${theme.panelContentGap};
           padding-top: 0;
           position: relative;
           height: 0;
