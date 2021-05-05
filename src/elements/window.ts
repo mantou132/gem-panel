@@ -61,7 +61,8 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onMoveTitleStart = (panel: Panel, evt: PointerEvent) => {
-    evt.stopPropagation();
+    evt.stopPropagation(); // prevent <gem-gesture>
+    this.#onFocusWindow(); // manual trigger
     const target = evt.currentTarget as HTMLElement;
     const { x, y } = target.getBoundingClientRect();
     const parentRect = target.offsetParent?.getBoundingClientRect();
@@ -107,6 +108,8 @@ export class GemPanelWindowElement extends GemElement<State> {
         panel: null,
         move: false,
         independentWindow,
+        clientX: evt.clientX,
+        clientY: evt.clientY,
       });
     } else {
       this.setState({ move: true, clientX: evt.clientX, clientY: evt.clientY });
@@ -128,7 +131,7 @@ export class GemPanelWindowElement extends GemElement<State> {
     });
   };
 
-  #clickHandle = (index: number) => {
+  #onFocusPanel = (index: number) => {
     const { move, independentWindow } = this.state;
     if (!move && !independentWindow) {
       updateCurrentPanel(this, index);
@@ -200,12 +203,14 @@ export class GemPanelWindowElement extends GemElement<State> {
     updateWindowDimension(this, [movement.w, movement.h]);
   };
 
+  #onFocusWindow = () => {
+    if (!this.window.isGridWindow()) {
+      updateWindowZIndex(this);
+    }
+  };
+
   mounted = () => {
-    this.addEventListener('pointerdown', () => {
-      if (!this.window.isGridWindow()) {
-        updateWindowZIndex(this);
-      }
-    });
+    this.addEventListener('pointerdown', this.#onFocusWindow);
   };
 
   render = () => {
@@ -391,7 +396,7 @@ export class GemPanelWindowElement extends GemElement<State> {
                 `}
                   .window=${this.window}
                   .panel=${p}
-                  @click=${() => this.#clickHandle(index)}
+                  @click=${() => this.#onFocusPanel(index)}
                   @pointerdown=${(evt: PointerEvent) => this.#onMoveTitleStart(p, evt)}
                   @pointermove=${this.#onMoveTitle}
                   @pointerup=${this.#onMoveTitleEnd}
