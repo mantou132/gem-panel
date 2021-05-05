@@ -125,7 +125,7 @@ export function closeWindow({ window }: WindowConfig) {
   updateStore(store, {});
 }
 
-export function moveSide({ window }: WindowConfig, side: Side, movmentPercentage: [number, number]) {
+export function moveSide({ window }: WindowConfig, side: Side, movmentPercentage: [number, number, number, number]) {
   store.config.moveSide(window, side, movmentPercentage);
   updateStore(store, {});
 }

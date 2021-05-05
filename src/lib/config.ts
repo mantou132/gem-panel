@@ -439,19 +439,20 @@ export class Config implements ConfigOptional {
     }
   }
 
-  // window gap cause shake
-  moveSide(window: Window, side: Side, [movementXPercentage, movementYPercentage]: number[]) {
+  moveSide(window: Window, side: Side, [movementXPercent, movementYPercent, gapWPercent, gapHPercent]: number[]) {
     const { minRow, minColumn, maxRow, maxColumn, width, height } = this.#findAreasBoundary(this.#findAreas(window));
 
     if (side === 'top' || side === 'bottom') {
-      const movementY = movementYPercentage * height;
+      const movementY = movementYPercent * height;
+      const gapY = gapHPercent * height;
       const index = side === 'top' ? minRow : maxRow + 1;
       const newRow = this.#rows[index - 1] + movementY;
       const newNextRow = this.#rows[index] - movementY;
       if (newRow < 0) {
+        if (-newRow - gapY < 0) return;
         this.#rows[index - 2] += newRow;
-        this.#rows[index - 1] = -newRow;
-        this.#rows[index] = newNextRow + newRow;
+        this.#rows[index - 1] = -newRow - gapY;
+        this.#rows[index] = newNextRow + newRow + gapY;
         this.#areas[index - 1].forEach((_, columnIndex) => {
           if (columnIndex < minColumn || columnIndex > maxColumn) {
             this.#areas[index - 1][columnIndex] = this.#areas[index - 2][columnIndex];
@@ -460,8 +461,9 @@ export class Config implements ConfigOptional {
           }
         });
       } else if (newNextRow < 0) {
-        this.#rows[index - 1] = newRow + newNextRow;
-        this.#rows[index] = -newNextRow;
+        if (-newNextRow - gapY < 0) return;
+        this.#rows[index - 1] = newRow + newNextRow + gapY;
+        this.#rows[index] = -newNextRow - gapY;
         this.#rows[index + 1] += newNextRow;
         this.#areas[index].forEach((_, columnIndex) => {
           if (columnIndex < minColumn || columnIndex > maxColumn) {
@@ -475,14 +477,16 @@ export class Config implements ConfigOptional {
         this.#rows[index] = newNextRow;
       }
     } else {
-      const movementX = movementXPercentage * width;
+      const movementX = movementXPercent * width;
+      const gapX = gapWPercent * width;
       const index = side === 'left' ? minColumn : maxColumn + 1;
       const newColumn = this.#columns[index - 1] + movementX;
       const newNextColumn = this.#columns[index] - movementX;
       if (newColumn < 0) {
+        if (-newColumn - gapX < 0) return;
         this.#columns[index - 2] += newColumn;
-        this.#columns[index - 1] = -newColumn;
-        this.#columns[index] = newNextColumn + newColumn;
+        this.#columns[index - 1] = -newColumn - gapX;
+        this.#columns[index] = newNextColumn + newColumn + gapX;
         this.#areas.forEach((_, rowIndex) => {
           if (rowIndex < minRow || rowIndex > maxRow) {
             this.#areas[rowIndex][index - 1] = this.#areas[rowIndex][index - 2];
@@ -491,8 +495,9 @@ export class Config implements ConfigOptional {
           }
         });
       } else if (newNextColumn < 0) {
-        this.#columns[index - 1] = newColumn + newNextColumn;
-        this.#columns[index] = -newNextColumn;
+        if (-newNextColumn - gapX < 0) return;
+        this.#columns[index - 1] = newColumn + newNextColumn + gapX;
+        this.#columns[index] = -newNextColumn - gapX;
         this.#columns[index + 1] += newNextColumn;
         this.#areas.forEach((_, rowIndex) => {
           if (rowIndex < minRow || rowIndex > maxRow) {

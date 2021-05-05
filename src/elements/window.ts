@@ -1,4 +1,5 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
+import { getThemeStore } from '@mantou/gem/helper/theme';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
@@ -158,7 +159,14 @@ export class GemPanelWindowElement extends GemElement<State> {
 
   #onSidePan = ({ detail }: CustomEvent<PanEventDetail>, side: Side) => {
     const { width, height } = this.getBoundingClientRect();
-    moveSide(this, side, [detail.x / width, detail.y / height]);
+    const gapStr = getThemeStore(theme).windowGap;
+    let gap = 0;
+    if (gapStr.trim().endsWith('px')) {
+      gap = parseFloat(gapStr);
+    } else {
+      console.info('Cause the moving axis to shake!');
+    }
+    moveSide(this, side, [detail.x / width, detail.y / height, gap / width, gap / height]);
   };
 
   #onCornerPan = ({ detail: { x, y } }: CustomEvent<PanEventDetail>, corner: Corner) => {
