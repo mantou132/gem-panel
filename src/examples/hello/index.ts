@@ -1,9 +1,10 @@
 import { render, html } from '@mantou/gem';
 
 import { Config, Panel, Window, MenuItem, GemPanelElement } from '../../';
+import { PanelChangeDetail } from '../../elements/root';
 
 const panel1 = new Panel('p1 title', html`<div style="height: 1000px">p1 content</div>`);
-const panel2 = new Panel('p2 title', html`p2 content`);
+const panel2 = new Panel('p2 title');
 const panel3 = new Panel('p3 title', html`p3 content`);
 const panel4 = new Panel('p4 title', html`p4 content`);
 const panel5 = new Panel('p5 title', html`p5 content`);
@@ -34,6 +35,27 @@ const openPanelMenuBefore = (_: Panel, window: Window) => {
   return menus;
 };
 
+const onPanelChange = (evt: CustomEvent<PanelChangeDetail>) => {
+  evt.detail.activePanels.forEach(({ title }) => {
+    if (title === 'p2 title') {
+      // async load content
+      setTimeout(() => {
+        (evt.target as GemPanelElement).loadContentInPanel(
+          title,
+          html`<iframe
+            src="https://ghbtns.com/github-btn.html?user=mantou132&repo=gem-panel&type=watch&count=true&size=large"
+            frameborder="0"
+            scrolling="0"
+            width="170"
+            height="30"
+            title="GitHub"
+          ></iframe>`,
+        );
+      }, 1000);
+    }
+  });
+};
+
 render(
   html`
     <style>
@@ -49,6 +71,7 @@ render(
       .theme=${{}}
       .config=${config}
       ?cache=${false}
+      @panel-change=${onPanelChange}
       cache-version=""
     ></gem-panel>
   `,

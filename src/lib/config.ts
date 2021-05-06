@@ -1,6 +1,8 @@
 import { TemplateResult, html, randomStr } from '@mantou/gem';
 
 import { MoveSideArgs, Side } from '../elements/window-handle';
+import '../elements/panel-placeholder';
+
 import {
   WINDOW_DEFAULT_DIMENSION,
   WINDOW_DEFAULT_GAP,
@@ -10,22 +12,28 @@ import {
 } from './const';
 import { findLimintPosition, getFlipMatrix, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
-type PannelContent = TemplateResult | string;
+export type PannelContent = TemplateResult | string;
 
 export class Panel {
   title: string;
-  content: PannelContent;
+  content?: PannelContent;
+
+  static defaultContent = html`<gem-panel-placeholder></gem-panel-placeholder>`;
 
   static parse(obj: Panel) {
-    const { title, content } = obj;
+    const { title, content = Panel.defaultContent } = obj;
     return new Panel(
       title,
       typeof content === 'string' ? html([content] as any) : html(content.strings, ...content.values),
     );
   }
 
-  constructor(title = 'No title', content: PannelContent = `No content provided`) {
+  constructor(title = 'No title', content: PannelContent = Panel.defaultContent) {
     this.title = title;
+    this.loadContent(content);
+  }
+
+  loadContent(content: PannelContent) {
     this.content = typeof content === 'string' ? html([content] as any) : content;
   }
 }
@@ -46,7 +54,7 @@ export class Window implements WindowOptional {
   dimension?: [number, number];
   panels: Panel[];
 
-  static parse({ gridArea, current, panels = [], position, dimension }: Window) {
+  static parse({ gridArea, current = 0, panels = [], position, dimension }: Window) {
     return new Window(panels.map(Panel.parse), { gridArea, current, position, dimension });
   }
 

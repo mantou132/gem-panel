@@ -1,6 +1,6 @@
 import { createStore, updateStore } from '@mantou/gem';
 import { WINDOW_HOVER_BORDER } from './const';
-import { Config, Panel, Window } from './config';
+import { Config, Panel, PannelContent, Window } from './config';
 import { detectPosition } from './utils';
 import { GemPanelWindowElement } from '../elements/window';
 import { HoverWindowPosition } from '../elements/window-mask';
@@ -32,17 +32,22 @@ export function updateAppState(state: Partial<AppState>) {
 
 export function openHiddenPanel(panel: Panel) {
   store.config.openHiddenPanel(panel);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function openPanelInWindow(panel: Panel, window: Window) {
   store.config.openPanelInWindow(panel, window);
-  updateStore(store, {});
+  updateStore(store);
+}
+
+export function loadContentInPanel(panel: Panel, content: PannelContent) {
+  panel.loadContent(content);
+  updateStore(store);
 }
 
 export function independentPanel({ window }: WindowConfig, panel: Panel, rect: [number, number, number, number]) {
   const newWindow = store.config.createIndependentWindow(window, panel, rect);
-  updateStore(store, {});
+  updateStore(store);
   return newWindow;
 }
 
@@ -93,45 +98,45 @@ export function dropHandleWindow({ window }: WindowConfig) {
 
 export function updateCurrentPanel({ window }: WindowConfig, current: number) {
   window.changeCurrent(current);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function updatePanelSort({ window }: WindowConfig, p1: Panel, p2: Panel) {
   window.changePanelSort(p1, p2);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function updateWindowPosition({ window }: WindowConfig, movement: [number, number]) {
   store.config.moveWindowPosition(window, movement);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function updateWindowDimension({ window }: WindowConfig, movement: [number, number]) {
   store.config.changeWindowDimension(window, movement);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function updateWindowZIndex({ window }: WindowConfig) {
   store.config.focusWindow(window);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function updateWindowType({ window }: WindowConfig, { x, y, width, height }: DOMRect) {
   store.config.removeWindow(window, [x, y, width, height]);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function closePanel({ window, panel }: PanelConfig) {
   store.config.closePanel(window, panel);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function closeWindow({ window }: WindowConfig) {
   store.config.removeWindow(window);
-  updateStore(store, {});
+  updateStore(store);
 }
 
 export function moveSide({ window }: WindowConfig, side: Side, args: MoveSideArgs) {
   store.config.moveSide(window, side, args);
-  updateStore(store, {});
+  updateStore(store);
 }

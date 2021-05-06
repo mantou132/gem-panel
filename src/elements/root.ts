@@ -10,15 +10,23 @@ import {
   Emitter,
 } from '@mantou/gem';
 import { updateTheme } from '@mantou/gem/helper/theme';
-import { Config, Panel, Window } from '../lib/config';
-import { closePanel, closeWindow, openHiddenPanel, openPanelInWindow, store, updateAppState } from '../lib/store';
+import { Config, Panel, Window, PannelContent } from '../lib/config';
+import {
+  closePanel,
+  closeWindow,
+  loadContentInPanel,
+  openHiddenPanel,
+  openPanelInWindow,
+  store,
+  updateAppState,
+} from '../lib/store';
 import { theme } from '../lib/theme';
 import { isOutside } from '../lib/utils';
 import { MenuItem } from './menu';
 import { GemPanelWindowElement, windowTagName } from './window';
 import './menu';
 
-export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[] };
+export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[]; activePanels: Panel[] };
 export type OpenPanelMenuBeforeCallback = (panel: Panel, window: Window) => MenuItem[];
 
 /**
@@ -101,8 +109,13 @@ export class GemPanelElement extends GemElement {
       () => [this.theme],
     );
     this.effect(
-      () => this.panelChange({ showPanels: this.showPanels, hiddenPanels: this.hiddenPanels }),
-      () => [this.hiddenPanels.length],
+      () =>
+        this.panelChange({
+          showPanels: this.showPanels,
+          hiddenPanels: this.hiddenPanels,
+          activePanels: this.activePanels,
+        }),
+      () => this.showPanels.map(({ title }) => title),
     );
     this.effect(
       (_, old) => {
@@ -150,11 +163,15 @@ export class GemPanelElement extends GemElement {
   };
 
   get hiddenPanels() {
-    return [...new Set(store.config.panels)];
+    return store.config.panels;
   }
 
   get showPanels() {
-    return [...new Set(store.config.windows.map((w) => w.panels).flat())];
+    return store.config.windows.map((w) => w.panels).flat();
+  }
+
+  get activePanels() {
+    return store.config.windows.map((w) => w.panels[w.current || 0]);
   }
 
   get windows() {
@@ -171,6 +188,12 @@ export class GemPanelElement extends GemElement {
     const panel = this.#queryPanel(arg, this.hiddenPanels);
     if (!panel) return;
     openPanelInWindow(panel, window);
+  }
+
+  loadContentInPanel(arg: string | Panel, content: PannelContent) {
+    const panel = this.#queryPanel(arg, this.showPanels);
+    if (!panel) return;
+    loadContentInPanel(panel, content);
   }
 
   closePanel(arg: string | Panel) {
