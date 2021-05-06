@@ -1,8 +1,14 @@
 import { TemplateResult, html, randomStr } from '@mantou/gem';
 
-import { Side } from '../elements/window-handle';
-import { WINDOW_DEFAULT_DIMENSION, WINDOW_DEFAULT_GAP, WINDOW_DEFAULT_POSITION } from './const';
-import { findLimintPosition, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
+import { MoveSideArgs, Side } from '../elements/window-handle';
+import {
+  WINDOW_DEFAULT_DIMENSION,
+  WINDOW_DEFAULT_GAP,
+  WINDOW_DEFAULT_POSITION,
+  WINDOW_MAX_HEIGHT,
+  WINDOW_MAX_WIDTH,
+} from './const';
+import { findLimintPosition, getFlipMatrix, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
 
 type PannelContent = TemplateResult | string;
 
@@ -446,77 +452,91 @@ export class Config implements ConfigOptional {
     }
   }
 
-  moveSide(window: Window, side: Side, [movementXPercent, movementYPercent, gapWPercent, gapHPercent]: number[]) {
+  moveSide(window: Window, side: Side, args: MoveSideArgs) {
     const { minRow, minColumn, maxRow, maxColumn, width, height } = this.#findAreasBoundary(this.#findAreas(window));
 
+    const move = (
+      rowsFr: number[],
+      areas: string[][],
+      minRowIndex: number,
+      maxRowIndex: number,
+      minColumnIndex: number,
+      maxColumnIndex: number,
+      movementYPx: number,
+      heightPx: number,
+      heightFr: number,
+      maxHeightPx: number,
+    ) => {
+      const movement = (movementYPx / heightPx) * heightFr;
+      const gap = (args.gap / heightPx) * heightFr;
+      const index = side === 'top' || side === 'left' ? minRowIndex : maxRowIndex + 1;
+      const shrinked = rowsFr[index - 1] + movement;
+      const growed = rowsFr[index] - movement;
+
+      const unit = heightPx / heightFr;
+      const checkIndex = movementYPx > 0 ? index : index - 1;
+      const area = [...new Set(areas[checkIndex])];
+      for (let i = 0; i < area.length; i++) {
+        const siblingHeightPx =
+          this.#findAreasBoundary(this.#findAreas(area[i]))[side === 'top' || side === 'bottom' ? 'height' : 'width'] *
+          unit;
+        if (siblingHeightPx < maxHeightPx) return;
+      }
+
+      if (shrinked < 0 || growed < 0) {
+        let small = 0;
+        let big = 0;
+        let r1 = 0;
+        let r2 = 0;
+        let r3 = 0;
+        if (shrinked < 0) {
+          [small, big, r3, r2, r1] = [shrinked, growed, index - 2, index - 1, index];
+        } else if (growed < 0) {
+          [small, big, r3, r2, r1] = [growed, shrinked, index + 1, index, index - 1];
+        }
+        if (-small - gap < 0) return;
+        rowsFr[r1] = big + small + gap;
+        rowsFr[r2] = -small - gap;
+        rowsFr[r3] += small;
+        areas[r2].forEach((_, columnIndex) => {
+          if (columnIndex < minColumnIndex || columnIndex > maxColumnIndex) {
+            areas[r2][columnIndex] = areas[r3][columnIndex];
+          } else {
+            areas[r2][columnIndex] = areas[r1][columnIndex];
+          }
+        });
+      } else {
+        rowsFr[index - 1] = shrinked;
+        rowsFr[index] = growed;
+      }
+    };
+
     if (side === 'top' || side === 'bottom') {
-      const movementY = movementYPercent * height;
-      const gapY = gapHPercent * height;
-      const index = side === 'top' ? minRow : maxRow + 1;
-      const newRow = this.#rows[index - 1] + movementY;
-      const newNextRow = this.#rows[index] - movementY;
-      if (newRow < 0) {
-        if (-newRow - gapY < 0) return;
-        this.#rows[index - 2] += newRow;
-        this.#rows[index - 1] = -newRow - gapY;
-        this.#rows[index] = newNextRow + newRow + gapY;
-        this.#areas[index - 1].forEach((_, columnIndex) => {
-          if (columnIndex < minColumn || columnIndex > maxColumn) {
-            this.#areas[index - 1][columnIndex] = this.#areas[index - 2][columnIndex];
-          } else {
-            this.#areas[index - 1][columnIndex] = this.#areas[index][columnIndex];
-          }
-        });
-      } else if (newNextRow < 0) {
-        if (-newNextRow - gapY < 0) return;
-        this.#rows[index - 1] = newRow + newNextRow + gapY;
-        this.#rows[index] = -newNextRow - gapY;
-        this.#rows[index + 1] += newNextRow;
-        this.#areas[index].forEach((_, columnIndex) => {
-          if (columnIndex < minColumn || columnIndex > maxColumn) {
-            this.#areas[index][columnIndex] = this.#areas[index + 1][columnIndex];
-          } else {
-            this.#areas[index][columnIndex] = this.#areas[index - 1][columnIndex];
-          }
-        });
-      } else {
-        this.#rows[index - 1] = newRow;
-        this.#rows[index] = newNextRow;
-      }
+      move(
+        this.#rows,
+        this.#areas,
+        minRow,
+        maxRow,
+        minColumn,
+        maxColumn,
+        args.movementY,
+        args.height,
+        height,
+        WINDOW_MAX_HEIGHT,
+      );
     } else {
-      const movementX = movementXPercent * width;
-      const gapX = gapWPercent * width;
-      const index = side === 'left' ? minColumn : maxColumn + 1;
-      const newColumn = this.#columns[index - 1] + movementX;
-      const newNextColumn = this.#columns[index] - movementX;
-      if (newColumn < 0) {
-        if (-newColumn - gapX < 0) return;
-        this.#columns[index - 2] += newColumn;
-        this.#columns[index - 1] = -newColumn - gapX;
-        this.#columns[index] = newNextColumn + newColumn + gapX;
-        this.#areas.forEach((_, rowIndex) => {
-          if (rowIndex < minRow || rowIndex > maxRow) {
-            this.#areas[rowIndex][index - 1] = this.#areas[rowIndex][index - 2];
-          } else {
-            this.#areas[rowIndex][index - 1] = this.#areas[rowIndex][index];
-          }
-        });
-      } else if (newNextColumn < 0) {
-        if (-newNextColumn - gapX < 0) return;
-        this.#columns[index - 1] = newColumn + newNextColumn + gapX;
-        this.#columns[index] = -newNextColumn - gapX;
-        this.#columns[index + 1] += newNextColumn;
-        this.#areas.forEach((_, rowIndex) => {
-          if (rowIndex < minRow || rowIndex > maxRow) {
-            this.#areas[rowIndex][index] = this.#areas[rowIndex][index + 1];
-          } else {
-            this.#areas[rowIndex][index] = this.#areas[rowIndex][index - 1];
-          }
-        });
-      } else {
-        this.#columns[index - 1] += movementX;
-        this.#columns[index] -= movementX;
-      }
+      move(
+        this.#columns,
+        getFlipMatrix(this.#areas),
+        minColumn,
+        maxColumn,
+        minRow,
+        maxRow,
+        args.movementX,
+        args.width,
+        width,
+        WINDOW_MAX_WIDTH,
+      );
     }
     this.#stringifyGridTemplate();
   }

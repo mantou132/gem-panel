@@ -61,3 +61,28 @@ export function isOutside(rect: DOMRect, target: DOMRect) {
   }
   return false;
 }
+
+// only read and modify element
+export function getFlipMatrix<T>(matrix: T[][]) {
+  return new Proxy(matrix, {
+    get(_, p) {
+      return new Proxy(
+        {},
+        {
+          get(_, c) {
+            if (c in Array.prototype) {
+              const arr = matrix.map((row) => row[p as any]);
+              const v = arr[c as any];
+              return typeof v === 'function' ? v.bind(arr) : arr[c as any];
+            }
+            return matrix[c as any][p as any];
+          },
+          set(_, c, v) {
+            matrix[c as any][p as any] = v;
+            return true;
+          },
+        },
+      );
+    },
+  });
+}

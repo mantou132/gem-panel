@@ -3,13 +3,14 @@ import { getThemeStore } from '@mantou/gem/helper/theme';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
-import { Window } from '../lib/config';
 import { moveSide, updateWindowPosition, updateWindowDimension } from '../lib/store';
+import { Window } from '../lib/config';
 import { store } from '../lib/store';
 import { theme } from '../lib/theme';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 export type Side = typeof sides[number];
+export type MoveSideArgs = { movementX: number; movementY: number; width: number; height: number; gap: number };
 
 const corners = ['top-left', 'top-right', 'bottom-right', 'bottom-left'] as const;
 export type Corner = typeof corners[number];
@@ -28,7 +29,7 @@ export class GemPanelHandleElement extends GemElement {
     } else {
       console.info('Cause the moving axis to shake!');
     }
-    moveSide(this, side, [detail.x / width, detail.y / height, gap / width, gap / height]);
+    moveSide({ window: this.window }, side, { width, height, gap, movementX: detail.x, movementY: detail.y });
   };
 
   #onCornerPan = ({ detail: { x, y } }: CustomEvent<PanEventDetail>, corner: Corner) => {
@@ -58,8 +59,8 @@ export class GemPanelHandleElement extends GemElement {
       movement.w = -x;
       movement.h = y;
     }
-    updateWindowPosition(this, [movement.x, movement.y]);
-    updateWindowDimension(this, [movement.w, movement.h]);
+    updateWindowPosition({ window: this.window }, [movement.x, movement.y]);
+    updateWindowDimension({ window: this.window }, [movement.w, movement.h]);
   };
 
   render = () => {

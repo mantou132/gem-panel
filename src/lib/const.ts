@@ -6,3 +6,5 @@ export const WINDOW_TITLEBAR_HEIGHT = 12;
 export const ENTWE_PANEL_SORT_DISTANCE = 4;
 export const CANCEL_WINDOW_DRAGOVER_DISTANCE = 4;
 export const NEWWINDOW_FROM_PANEL_Y_OFFSET = 20;
+export const WINDOW_MAX_WIDTH = 200;
+export const WINDOW_MAX_HEIGHT = 100;

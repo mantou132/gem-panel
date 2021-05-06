@@ -4,7 +4,7 @@ import { Config, Panel, Window } from './config';
 import { detectPosition } from './utils';
 import { GemPanelWindowElement } from '../elements/window';
 import { HoverWindowPosition } from '../elements/window-mask';
-import { Side } from '../elements/window-handle';
+import { MoveSideArgs, Side } from '../elements/window-handle';
 import { OpenPanelMenuBeforeCallback } from '../elements/root';
 
 type AppState = {
@@ -131,7 +131,7 @@ export function closeWindow({ window }: WindowConfig) {
   updateStore(store, {});
 }
 
-export function moveSide({ window }: WindowConfig, side: Side, movmentPercentage: [number, number, number, number]) {
-  store.config.moveSide(window, side, movmentPercentage);
+export function moveSide({ window }: WindowConfig, side: Side, args: MoveSideArgs) {
+  store.config.moveSide(window, side, args);
   updateStore(store, {});
 }
