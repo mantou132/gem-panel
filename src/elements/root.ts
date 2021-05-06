@@ -161,7 +161,7 @@ export class GemPanelElement extends GemElement {
       ${repeat(
         windows,
         (w) => w.id,
-        (window) => html`<gem-panel-window .window=${window}></gem-panel-window>`,
+        (window) => html`<gem-panel-window .window=${window} tabindex="0"></gem-panel-window>`,
       )}
       <gem-panel-menu></gem-panel-menu>
     `;

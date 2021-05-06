@@ -163,13 +163,11 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onFocusWindow = () => {
-    if (!this.window.isGridWindow()) {
-      updateWindowZIndex(this);
-    }
+    updateWindowZIndex(this);
   };
 
   mounted = () => {
-    this.addEventListener('pointerdown', this.#onFocusWindow);
+    this.addEventListener('focus', this.#onFocusWindow);
   };
 
   render = () => {

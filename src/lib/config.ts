@@ -326,6 +326,7 @@ export class Config implements ConfigOptional {
   }
 
   focusWindow(window: Window) {
+    if (window.isGridWindow()) return;
     const maxZIndex = Math.max(...this.windows.map((w) => w.zIndex || 0));
     window.zIndex = maxZIndex + 1;
   }
@@ -381,6 +382,7 @@ export class Config implements ConfigOptional {
     const targetLen = target.panels.length;
     target.panels.push(...window.panels);
     target.changeCurrent(targetLen + (window.current || 0));
+    [target.id, window.id] = [window.id, target.id];
   }
 
   createWindow(window: Window, hoverWindow: Window, side: Side) {
@@ -438,7 +440,12 @@ export class Config implements ConfigOptional {
     const newWindow = new Window([panel], { position: [x, y], dimension: [w, h] });
     this.focusWindow(newWindow);
     this.windows.push(newWindow);
-    if (window) this.closePanel(window, panel);
+    if (window) {
+      this.closePanel(window, panel);
+      if (!window.panels.length) {
+        [newWindow.id, window.id] = [window.id, newWindow.id];
+      }
+    }
     return newWindow;
   }
 

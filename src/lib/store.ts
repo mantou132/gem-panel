@@ -87,6 +87,7 @@ export function cancelHandleWindow() {
 export function dropHandleWindow({ window }: WindowConfig) {
   clearTimeout(store.windowPanTimer);
   if (store.hoverWindow) {
+    store.config.focusWindow(store.hoverWindow);
     if (store.hoverWindowPosition === 'center') {
       store.config.mergeWindow(window, store.hoverWindow);
     } else {
