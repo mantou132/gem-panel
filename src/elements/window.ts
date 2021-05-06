@@ -79,6 +79,8 @@ export class GemPanelWindowElement extends GemElement<State> {
 
   #onMoveTitle = (evt: PointerEvent) => {
     evt.stopPropagation();
+    const target = evt.currentTarget as HTMLElement;
+    target.setPointerCapture(evt.pointerId);
     const { panel, move, offsetX, offsetY, parentOffsetY, clientX, clientY, independentWindow } = this.state;
     if (independentWindow) {
       clearTimeout(store.windowPanTimer);
@@ -91,8 +93,6 @@ export class GemPanelWindowElement extends GemElement<State> {
       }
     }
     if (!panel) return;
-    const target = evt.currentTarget as HTMLElement;
-    target.setPointerCapture(evt.pointerId);
     // first move
     if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < ENTWE_PANEL_SORT_DISTANCE) return;
     if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > NEWWINDOW_FROM_PANEL_Y_OFFSET) {
