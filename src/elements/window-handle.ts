@@ -3,7 +3,7 @@ import { getThemeStore } from '@mantou/gem/helper/theme';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
-import { moveSide, updateWindowPosition, updateWindowDimension } from '../lib/store';
+import { moveSide, updateWindowRect } from '../lib/store';
 import { Window } from '../lib/config';
 import { store } from '../lib/store';
 import { theme } from '../lib/theme';
@@ -59,8 +59,7 @@ export class GemPanelHandleElement extends GemElement {
       movement.w = -x;
       movement.h = y;
     }
-    updateWindowPosition({ window: this.window }, [movement.x, movement.y]);
-    updateWindowDimension({ window: this.window }, [movement.w, movement.h]);
+    updateWindowRect({ window: this.window }, [movement.x, movement.y, movement.w, movement.h]);
   };
 
   render = () => {

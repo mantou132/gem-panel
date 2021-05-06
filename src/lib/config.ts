@@ -307,14 +307,20 @@ export class Config implements ConfigOptional {
     this.panels = panels;
   }
 
-  moveWindowPosition(window: Window, [x, y]: [number, number]) {
+  moveWindow(window: Window, [x, y]: [number, number]) {
     const [originX = 0, originY = 0] = window.position || [];
-    window.position = [originX + x, originY + y];
+    window.position = [Math.max(originX + x, 0), Math.max(originY + y, 0)];
   }
 
-  changeWindowDimension(window: Window, [x, y]: [number, number]) {
+  changeWindowRect(window: Window, [mx, my, mw, mh]: [number, number, number, number]) {
+    const [originX = 0, originY = 0] = window.position || [];
     const [originW = 0, originH = 0] = window.dimension || [];
-    window.dimension = [originW + x, originH + y];
+    const w = originW + mw;
+    const h = originH + mh;
+    const x = w < WINDOW_MAX_WIDTH ? originX : originX + mx;
+    const y = h < WINDOW_MAX_HEIGHT ? originY : originY + my;
+    window.position = [Math.max(x, 0), Math.max(y, 0)];
+    window.dimension = [w < WINDOW_MAX_WIDTH || x < 0 ? originW : w, h < WINDOW_MAX_HEIGHT || y < 0 ? originH : h];
   }
 
   focusWindow(window: Window) {

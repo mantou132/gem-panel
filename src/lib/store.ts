@@ -107,12 +107,12 @@ export function updatePanelSort({ window }: WindowConfig, p1: Panel, p2: Panel) 
 }
 
 export function updateWindowPosition({ window }: WindowConfig, movement: [number, number]) {
-  store.config.moveWindowPosition(window, movement);
+  store.config.moveWindow(window, movement);
   updateStore(store);
 }
 
-export function updateWindowDimension({ window }: WindowConfig, movement: [number, number]) {
-  store.config.changeWindowDimension(window, movement);
+export function updateWindowRect({ window }: WindowConfig, movement: [number, number, number, number]) {
+  store.config.changeWindowRect(window, movement);
   updateStore(store);
 }
 
