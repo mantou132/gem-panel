@@ -47,6 +47,7 @@ interface WindowOptional {
 }
 
 export class Window implements WindowOptional {
+  id: string;
   gridArea?: string;
   current?: number;
   position?: [number, number];
@@ -60,6 +61,7 @@ export class Window implements WindowOptional {
 
   constructor(panels: Panel[] = [], optional: WindowOptional = {}) {
     const { gridArea = '', current = 0, position, dimension, zIndex = 1 } = optional;
+    this.id = randomStr();
     this.gridArea = gridArea;
     this.current = current;
     this.panels = panels;

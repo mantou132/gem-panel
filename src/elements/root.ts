@@ -8,6 +8,7 @@ import {
   attribute,
   emitter,
   Emitter,
+  repeat,
 } from '@mantou/gem';
 import { updateTheme } from '@mantou/gem/helper/theme';
 import { Config, Panel, Window, PannelContent } from '../lib/config';
@@ -157,7 +158,11 @@ export class GemPanelElement extends GemElement {
           font-size: ${theme.fontSize};
         }
       </style>
-      ${windows.map((window) => html`<gem-panel-window .window=${window}></gem-panel-window>`)}
+      ${repeat(
+        windows,
+        (w) => w.id,
+        (window) => html`<gem-panel-window .window=${window}></gem-panel-window>`,
+      )}
       <gem-panel-menu></gem-panel-menu>
     `;
   };
