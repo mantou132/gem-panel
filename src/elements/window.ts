@@ -141,7 +141,9 @@ export class GemPanelWindowElement extends GemElement<State> {
   #onHeaderPan = ({ detail }: CustomEvent<PanEventDetail>) => {
     clearTimeout(store.windowPanTimer);
     if (this.window.isGridWindow()) {
-      updateWindowType(this, this.getBoundingClientRect());
+      if (distance(detail.x, detail.y) > CANCEL_WINDOW_DRAGOVER_DISTANCE) {
+        updateWindowType(this, this.getBoundingClientRect());
+      }
     } else {
       setWindowPanTimeout(this, this.window, [detail.clientX, detail.clientY]);
       if (distance(detail.x, detail.y) > CANCEL_WINDOW_DRAGOVER_DISTANCE) {
