@@ -91,14 +91,14 @@ export function dropHandleWindow({ window }: WindowConfig) {
     if (store.hoverWindowPosition === 'center') {
       store.config.mergeWindow(window, store.hoverWindow);
     } else {
-      store.config.createWindow(window, store.hoverWindow, store.hoverWindowPosition);
+      store.config.createGridWindow(window, store.hoverWindow, store.hoverWindowPosition);
     }
     cancelHandleWindow();
   }
 }
 
-export function updateCurrentPanel({ window }: WindowConfig, current: number) {
-  window.changeCurrent(current);
+export function updateCurrentPanel({ window }: WindowConfig, panel: Panel) {
+  window.changeCurrent(window.panels.findIndex((p) => p === panel));
   updateStore(store);
 }
 

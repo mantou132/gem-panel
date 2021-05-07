@@ -10,7 +10,14 @@ import {
   WINDOW_MAX_HEIGHT,
   WINDOW_MAX_WIDTH,
 } from './const';
-import { findLimintPosition, getFlipMatrix, getNewFocusElementIndex, isEqualArray, removeItem } from './utils';
+import {
+  findLimintPosition,
+  getFlipMatrix,
+  getNewFocusElementIndex,
+  isEqualArray,
+  removeItem,
+  swapPosition,
+} from './utils';
 
 export type PannelContent = TemplateResult | string;
 
@@ -378,14 +385,15 @@ export class Config implements ConfigOptional {
   }
 
   mergeWindow(window: Window, target: Window) {
+    swapPosition(this.windows, window, target);
+    [target.id, window.id] = [window.id, target.id];
     removeItem(this.windows, window);
     const targetLen = target.panels.length;
     target.panels.push(...window.panels);
     target.changeCurrent(targetLen + (window.current || 0));
-    [target.id, window.id] = [window.id, target.id];
   }
 
-  createWindow(window: Window, hoverWindow: Window, side: Side) {
+  createGridWindow(window: Window, hoverWindow: Window, side: Side) {
     const areas = this.#findAreas(hoverWindow);
     const { rows, columns, width, height } = this.#findAreasBoundary(areas);
     const gridArea = this.#getNewGridArea();
@@ -441,10 +449,12 @@ export class Config implements ConfigOptional {
     this.focusWindow(newWindow);
     this.windows.push(newWindow);
     if (window) {
+      // Keep panel pointerevent
+      // `repeat` 在 chrome 中不能复用元素，所以手动调整位置
+      // 独立非激活 panel 时没有处理，导致老窗口的激活面板重新渲染
+      swapPosition(this.windows, window, newWindow);
+      [newWindow.id, window.id] = [window.id, newWindow.id];
       this.closePanel(window, panel);
-      if (!window.panels.length) {
-        [newWindow.id, window.id] = [window.id, newWindow.id];
-      }
     }
     return newWindow;
   }

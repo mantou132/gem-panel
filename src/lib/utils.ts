@@ -25,6 +25,12 @@ export function removeItem(arr: any[], item: any) {
   arr.splice(index, 1);
 }
 
+export function swapPosition(arr: any[], item2: any, item1: any) {
+  const index1 = arr.findIndex((e) => e === item1);
+  const index2 = arr.findIndex((e) => e === item2);
+  [arr[index1], arr[index2]] = [item2, item1];
+}
+
 export function detectPosition([ox, oy, w, h]: number[], [px, py]: [number, number], border: number) {
   const [x, y] = [px - ox, py - oy];
   if (x >= y && y >= 0 && y <= border && x <= w - y) {
