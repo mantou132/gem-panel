@@ -2,6 +2,10 @@ A custom element`<gem-panel>`, let you easily create layout similar to Adobe Aft
 
 [Dome](https://gem-panel.vercel.app/)
 
+## Docs
+
+- [API](./api-docs.md)
+
 ## Features
 
 - Drag to adjust the grid
@@ -20,15 +24,16 @@ import { render, html } from '@mantou/gem';
 import { Config, Panel, Window } from 'gem-panel';
 
 const panel1 = new Panel('p1 title', html`p1 content`);
-const panel2 = new Panel('p2 title', html`p2 content`);
-const panel3 = new Panel('p3 title', html`p3 content`);
-const panel4 = new Panel('p4 title', html`p4 content`);
-const panel5 = new Panel('p5 title', html`p5 content`);
-const panel6 = new Panel('p6 title', html`p6 content`);
+const panel2 = new Panel('p2 title');
+const panel3 = new Panel('p3 title', html`<p3-panel></p3-panel>`);
+const panel4 = new Panel('p4 title', html`<p4-panel></p4-panel>`);
+const panel5 = new Panel('p5 title', html`<p5-panel></p5-panel>`);
+const panel6 = new Panel('p6 title', html`<p6-panel></p6-panel>`);
 
 const window1 = new Window([panel1, panel4, panel5]);
 const window2 = new Window([panel2]);
 const window3 = new Window([panel6]);
+
 const config = new Config([window1, window2, window3], [panel3]);
 
 render(
@@ -40,19 +45,24 @@ render(
         padding: 0;
         height: 100%;
       }
+      gem-panel::part(window):--fixed {
+        box-shadow: 0 0.3em 1em rgb(0 0 0 / 40%);
+      }
     </style>
     <gem-panel
       .theme=${{ backgroundColor: 'red' }}
       .config=${config}
-      .openPanelMenuBefore=${(panel) => []}
+      .openPanelMenuBefore=${(panel, window) => []}
       cache
+      cache-version="1"
+      @panel-change=${({ detail }) => {}}
     ></gem-panel>
   `,
   document.body,
 );
 ```
 
-## develop
+## Develop
 
 ```bash
 # install dependencies

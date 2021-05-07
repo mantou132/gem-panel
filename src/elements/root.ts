@@ -30,20 +30,6 @@ import './menu';
 export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[]; activePanels: Panel[] };
 export type OpenPanelMenuBeforeCallback = (panel: Panel, window: Window) => MenuItem[];
 
-/**
- * @attr cache
- * @attr cache-version
- * @event panel-change
- * @part window
- * @part window-bar
- * @part panel-header
- * @part panel-content
- * @part panel-title
- * @part panel-button
- * @part panel-loader
- * @part menu
- * @part menu-item
- */
 @customElement('gem-panel')
 @connectStore(store)
 export class GemPanelElement extends GemElement {
@@ -93,14 +79,13 @@ export class GemPanelElement extends GemElement {
 
   #cleanOutsideWindow = () => {
     const rect = this.getBoundingClientRect();
-    [...this.shadowRoot!.querySelectorAll<GemPanelWindowElement>(windowTagName)]
-      .filter((wEle) => !wEle.window.isGridWindow())
-      .forEach((ele) => {
-        const targetRect = ele.getBoundingClientRect();
-        if (isOutside(rect, targetRect)) {
-          closeWindow(ele);
-        }
-      });
+    this.shadowRoot?.querySelectorAll<GemPanelWindowElement>(windowTagName).forEach((ele) => {
+      if (ele.window.isGridWindow()) return;
+      const targetRect = ele.getBoundingClientRect();
+      if (isOutside(rect, targetRect)) {
+        closeWindow(ele);
+      }
+    });
   };
 
   #onResize = () => {

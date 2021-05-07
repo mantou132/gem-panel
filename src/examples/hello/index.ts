@@ -71,8 +71,8 @@ render(
       .theme=${{}}
       .config=${config}
       ?cache=${false}
-      @panel-change=${onPanelChange}
       cache-version=""
+      @panel-change=${onPanelChange}
     ></gem-panel>
   `,
   document.body,
