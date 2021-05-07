@@ -55,13 +55,14 @@ export class GemPanelMenuElement extends GemElement {
           width: 100%;
           height: 100%;
           text-transform: capitalize;
+          font-size: 0.85em;
         }
         .menu {
           position: absolute;
           gap: 1px;
           width: 200px;
           max-height: calc(100vh - ${menuStore.y}px);
-          background: ${theme.darkBackgroundColor};
+          background: ${theme.backgroundColor};
           color: ${theme.secondaryColor};
           border: 1px solid ${theme.borderColor};
           box-shadow: 0 0.3em 1em rgba(0, 0, 0, 0.4);
@@ -76,14 +77,15 @@ export class GemPanelMenuElement extends GemElement {
           white-space: nowrap;
           text-overflow: ellipsis;
           padding: 0.4em 1em;
-          background: ${theme.backgroundColor};
         }
         .item:hover {
           color: ${theme.primaryColor};
         }
       </style>
-      <div class="menu">
-        ${menuStore.menus.map(({ text, handle }) => html`<div class="item" @click=${handle}>${text}</div>`)}
+      <div part="menu" class="menu">
+        ${menuStore.menus.map(
+          ({ text, handle }) => html`<div part="menu-item" class="item" @click=${handle}>${text}</div>`,
+        )}
       </div>
     `;
   };

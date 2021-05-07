@@ -1,7 +1,6 @@
 import { render, html } from '@mantou/gem';
 
-import { Config, Panel, Window, MenuItem, GemPanelElement } from '../../';
-import { PanelChangeDetail } from '../../elements/root';
+import { Config, Panel, Window, MenuItem, GemPanelElement, PanelChangeDetail } from '../../';
 
 const panel1 = new Panel('p1 title', html`<div style="height: 1000px">p1 content</div>`);
 const panel2 = new Panel('p2 title');
@@ -64,6 +63,7 @@ render(
         margin: 0;
         padding: 0;
         height: 100%;
+        overflow: hidden;
       }
     </style>
     <gem-panel

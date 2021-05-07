@@ -9,7 +9,7 @@ A custom element`<gem-panel>`, let you easily create layout similar to Adobe Aft
 - Drag and drop to adjust the panel sorting
 - Add commands to the panel
 - Cache layout
-- Custom theme
+- Custom style
 - Async load content
 - Typescript support
 

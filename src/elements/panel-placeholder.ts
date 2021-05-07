@@ -1,8 +1,10 @@
-import { html, GemElement, customElement } from '@mantou/gem';
+import { html, GemElement, customElement, attribute } from '@mantou/gem';
 import { theme } from '../lib/theme';
 
 @customElement('gem-panel-placeholder')
 export class GemPanelPlaceholderElement extends GemElement {
+  @attribute exportparts = 'panel-loader';
+
   render = () => {
     return html`
       <style>
@@ -30,7 +32,7 @@ export class GemPanelPlaceholderElement extends GemElement {
           }
         }
       </style>
-      <div class="loader"></div>
+      <div part="panel-loader" class="loader"></div>
     `;
   };
 }

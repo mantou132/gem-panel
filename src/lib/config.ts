@@ -111,7 +111,7 @@ interface ConfigOptional {
   gridTemplateColumns?: string;
 }
 
-const defaultLayout: ConfigOptional[] = [
+const defaultLayout: Required<ConfigOptional>[] = [
   {
     gridTemplateAreas: `"a"`,
     gridTemplateRows: '1fr',
@@ -300,11 +300,11 @@ export class Config implements ConfigOptional {
     const windows = allWindows.filter((w) => w.isGridWindow());
     const dl = defaultLayout[windows.length - 1] || defaultLayout[0];
     this.gridTemplateAreas = gridTemplateAreas || dl.gridTemplateAreas;
-    this.#parseAreas(this.gridTemplateAreas!);
+    this.#parseAreas(this.gridTemplateAreas);
     this.gridTemplateRows = gridTemplateRows || dl.gridTemplateRows;
-    this.#parseRows(this.gridTemplateRows!);
+    this.#parseRows(this.gridTemplateRows);
     this.gridTemplateColumns = gridTemplateColumns || dl.gridTemplateColumns;
-    this.#parseColumns(this.gridTemplateColumns!);
+    this.#parseColumns(this.gridTemplateColumns);
 
     windows.forEach((w, i) => {
       if (!w.gridArea) {

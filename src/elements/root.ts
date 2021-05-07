@@ -34,6 +34,15 @@ export type OpenPanelMenuBeforeCallback = (panel: Panel, window: Window) => Menu
  * @attr cache
  * @attr cache-version
  * @event panel-change
+ * @part window
+ * @part window-bar
+ * @part panel-header
+ * @part panel-content
+ * @part panel-title
+ * @part panel-button
+ * @part panel-loader
+ * @part menu
+ * @part menu-item
  */
 @customElement('gem-panel')
 @connectStore(store)
@@ -161,9 +170,16 @@ export class GemPanelElement extends GemElement {
       ${repeat(
         windows,
         (w) => w.id,
-        (window) => html`<gem-panel-window .window=${window} tabindex="0"></gem-panel-window>`,
+        (window) =>
+          html`<gem-panel-window
+            part="window"
+            exportparts="window-bar,panel-header,panel-content,panel-title,panel-button,panel-loader"
+            .fixed=${!window.isGridWindow()}
+            .window=${window}
+            tabindex="0"
+          ></gem-panel-window>`,
       )}
-      <gem-panel-menu></gem-panel-menu>
+      <gem-panel-menu exportparts="menu,menu-item"></gem-panel-menu>
     `;
   };
 
@@ -207,5 +223,13 @@ export class GemPanelElement extends GemElement {
     const window = this.windows.find((e) => e.panels.includes(panel as Panel));
     if (!window) return;
     closePanel({ window, panel });
+  }
+
+  updateAllPanel() {
+    updateAppState({});
+  }
+
+  clearCache() {
+    localStorage.removeItem(this.#getKey());
   }
 }

@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, state } from '@mantou/gem';
 import { Panel, Window } from '../lib/config';
 import { closePanel, closeWindow, store } from '../lib/store';
 import { openMenu } from './menu';
@@ -6,10 +6,13 @@ import { openMenu } from './menu';
 @customElement('gem-panel-title')
 @connectStore(store)
 export class GemPanelTitleElement extends GemElement {
+  @state active: boolean;
+  @state drag: boolean;
   window: Window;
   panel: Panel;
 
   #clickHandle = (evt: MouseEvent) => {
+    evt.stopPropagation();
     const { window, panel } = this;
     const defaultMenus = [
       {
@@ -35,7 +38,7 @@ export class GemPanelTitleElement extends GemElement {
           gap: 0.5em;
           text-transform: capitalize;
         }
-        .close-btn {
+        .panel-button {
           position: relative;
           display: block;
           width: 1em;
@@ -43,12 +46,12 @@ export class GemPanelTitleElement extends GemElement {
           border-radius: 1px;
           overflow: hidden;
         }
-        .close-btn::before,
-        .close-btn::after {
+        .panel-button::before,
+        .panel-button::after {
           content: '';
           position: absolute;
         }
-        .close-btn::before {
+        .panel-button::before {
           top: 50%;
           left: 15%;
           width: 70%;
@@ -56,7 +59,7 @@ export class GemPanelTitleElement extends GemElement {
           background: currentColor;
           box-shadow: 0 3px 0 currentColor, 0 -3px 0 currentColor;
         }
-        .close-btn:hover::after {
+        .panel-button:hover::after {
           top: 0;
           left: 0;
           width: 100%;
@@ -72,7 +75,7 @@ export class GemPanelTitleElement extends GemElement {
         }
       </style>
       <slot></slot>
-      <span class="close-btn" @pointerdown=${this.#clickHandle}></span>
+      <span part="panel-button" class="panel-button" @pointerdown=${this.#clickHandle}></span>
     `;
   };
 }

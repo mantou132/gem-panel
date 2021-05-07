@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, state } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
@@ -46,6 +46,7 @@ type State = {
 @customElement(windowTagName)
 @connectStore(store)
 export class GemPanelWindowElement extends GemElement<State> {
+  @state fixed: boolean;
   window: Window;
 
   state: State = {
@@ -261,9 +262,19 @@ export class GemPanelWindowElement extends GemElement<State> {
           flex-grow: 1;
         }
       </style>
-      ${isGrid ? '' : html`<gem-gesture class="bar" @pan=${this.#onHeaderPan} @end=${this.#onHeaderEnd}></gem-gesture>`}
+      ${isGrid
+        ? ''
+        : html`
+            <gem-gesture
+              part="window-bar"
+              class="bar"
+              @pan=${this.#onHeaderPan}
+              @end=${this.#onHeaderEnd}
+            ></gem-gesture>
+          `}
       <div class="flex">
         <gem-gesture
+          part="panel-header"
           class="widthgrow header"
           @wheel=${this.#onHeaderWheel}
           @pan=${this.#onHeaderPan}
@@ -273,6 +284,9 @@ export class GemPanelWindowElement extends GemElement<State> {
             (p, index) =>
               html`
                 <gem-panel-title
+                  part="panel-title"
+                  exportparts="panel-button"
+                  .active=${index === current}
                   class=${`
                   ${(p === panel && move) || (index !== 0 && p === independentPanel) ? 'hidden' : ''}
                   ${index === current ? 'active' : ''}
@@ -293,6 +307,10 @@ export class GemPanelWindowElement extends GemElement<State> {
           ${panel && move
             ? html`
                 <gem-panel-title
+                  part="panel-title"
+                  exportparts="panel-button"
+                  .drag=${true}
+                  .active=${panels[current] === panel}
                   class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
                   .window=${this.window}
                   .panel=${panel}
@@ -303,7 +321,7 @@ export class GemPanelWindowElement extends GemElement<State> {
             : ''}
         </gem-gesture>
       </div>
-      <div class="flex content">
+      <div part="panel-content" class="flex content">
         <div class="widthgrow">${panels[current].content}</div>
       </div>
       ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
