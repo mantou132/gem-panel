@@ -72,7 +72,7 @@ export class GemPanelTitleElement extends GemElement {
         }
       </style>
       <slot></slot>
-      <span class="close-btn" @click=${this.#clickHandle}></span>
+      <span class="close-btn" @pointerdown=${this.#clickHandle}></span>
     `;
   };
 }

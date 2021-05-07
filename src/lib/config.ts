@@ -449,11 +449,11 @@ export class Config implements ConfigOptional {
     this.focusWindow(newWindow);
     this.windows.push(newWindow);
     if (window) {
-      // Keep panel pointerevent
-      // `repeat` 在 chrome 中不能复用元素，所以手动调整位置
-      // 独立非激活 panel 时没有处理，导致老窗口的激活面板重新渲染
-      swapPosition(this.windows, window, newWindow);
-      [newWindow.id, window.id] = [window.id, newWindow.id];
+      if (panel === window.panels[window.current || 0]) {
+        // `repeat` 在 chrome 中不能复用元素，所以手动调整位置
+        swapPosition(this.windows, window, newWindow);
+        [newWindow.id, window.id] = [window.id, newWindow.id];
+      }
       this.closePanel(window, panel);
     }
     return newWindow;
