@@ -18,8 +18,11 @@ import {
   loadContentInPanel,
   openHiddenPanel,
   openPanelInWindow,
+  addHiddenPanel,
   store,
   updateAppState,
+  deletePanelFromWindow,
+  deleteHiddenPanel,
 } from '../lib/store';
 import { theme } from '../lib/theme';
 import { isOutside } from '../lib/utils';
@@ -75,6 +78,10 @@ export class GemPanelElement extends GemElement {
   #queryPanel = (arg: string | Panel, panels: Panel[]) => {
     const title = typeof arg === 'string' ? arg : arg.title;
     return panels.find((e) => e.title === title);
+  };
+
+  #queryWindow = (panel: Panel) => {
+    return this.windows.find((w) => w.panels.includes(panel));
   };
 
   #cleanOutsideWindow = () => {
@@ -205,9 +212,26 @@ export class GemPanelElement extends GemElement {
   closePanel(arg: string | Panel) {
     const panel = this.#queryPanel(arg, this.showPanels);
     if (!panel) return;
-    const window = this.windows.find((e) => e.panels.includes(panel as Panel));
+    const window = this.#queryWindow(panel);
     if (!window) return;
     closePanel({ window, panel });
+  }
+
+  addPanel(panel: Panel) {
+    addHiddenPanel(panel);
+  }
+
+  deletePanel(arg: string | Panel) {
+    const panel = this.#queryPanel(arg, this.showPanels);
+    if (panel) {
+      const window = this.#queryWindow(panel);
+      if (!window) return;
+      deletePanelFromWindow({ window, panel });
+    } else {
+      const hiddenPanel = this.#queryPanel(arg, this.hiddenPanels);
+      if (!hiddenPanel) return;
+      deleteHiddenPanel(hiddenPanel);
+    }
   }
 
   updateAllPanel() {

@@ -30,6 +30,14 @@ export function updateAppState(state: Partial<AppState>) {
   updateStore(store, state);
 }
 
+export function addHiddenPanel(panel: Panel) {
+  store.config.addHiddenPanel(panel);
+}
+
+export function deleteHiddenPanel(panel: Panel) {
+  store.config.deleteHiddenPanel(panel);
+}
+
 export function openHiddenPanel(panel: Panel) {
   store.config.openHiddenPanel(panel);
   updateStore(store);
@@ -124,6 +132,11 @@ export function updateWindowZIndex({ window }: WindowConfig) {
 
 export function updateWindowType({ window }: WindowConfig, { x, y, width, height }: DOMRect) {
   store.config.removeWindow(window, [x, y, width, height]);
+  updateStore(store);
+}
+
+export function deletePanelFromWindow({ window, panel }: PanelConfig) {
+  store.config.closePanel(window, panel, true);
   updateStore(store);
 }
 

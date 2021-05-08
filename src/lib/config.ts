@@ -316,6 +316,14 @@ export class Config implements ConfigOptional {
     this.panels = panels;
   }
 
+  addHiddenPanel(panel: Panel) {
+    this.panels.push(panel);
+  }
+
+  deleteHiddenPanel(panel: Panel) {
+    removeItem(this.panels, panel);
+  }
+
   moveWindow(window: Window, [x, y]: [number, number]) {
     const [originX = 0, originY = 0] = window.position || [];
     window.position = [Math.max(originX + x, 0), Math.max(originY + y, 0)];
@@ -473,11 +481,11 @@ export class Config implements ConfigOptional {
     removeItem(this.panels, panel);
   }
 
-  closePanel(window: Window, panel: Panel) {
+  closePanel(window: Window, panel: Panel, isDelete = false) {
     const panelIndex = window.panels.findIndex((e) => e === panel);
     const closerIndex = getNewFocusElementIndex(window.panels, window.current || 0, panelIndex);
     window.panels.splice(panelIndex, 1);
-    this.panels.push(panel);
+    if (!isDelete) this.panels.push(panel);
     if (closerIndex >= 0) {
       window.changeCurrent(closerIndex);
     } else {
