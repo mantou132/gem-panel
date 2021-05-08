@@ -72,7 +72,7 @@ export class Window implements WindowOptional {
     this.gridArea = gridArea;
     this.current = current;
     this.panels = panels;
-    this.zIndex = zIndex;
+    this.zIndex = zIndex + 10;
     if (position || dimension) {
       this.position = position || WINDOW_DEFAULT_POSITION;
       this.dimension = dimension || WINDOW_DEFAULT_DIMENSION;

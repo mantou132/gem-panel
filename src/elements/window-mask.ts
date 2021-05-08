@@ -23,7 +23,6 @@ export class GemPanelMaskElement extends GemElement {
         .left {
           position: absolute;
           box-sizing: border-box;
-          z-index: 2;
           width: 100%;
           height: 100%;
           top: 0;

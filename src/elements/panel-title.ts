@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, state } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { Panel, Window } from '../lib/config';
 import { closePanel, closeWindow, store } from '../lib/store';
 import { openMenu } from './menu';
@@ -6,8 +6,6 @@ import { openMenu } from './menu';
 @customElement('gem-panel-title')
 @connectStore(store)
 export class GemPanelTitleElement extends GemElement {
-  @state active: boolean;
-  @state drag: boolean;
   window: Window;
   panel: Panel;
 

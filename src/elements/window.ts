@@ -179,48 +179,40 @@ export class GemPanelWindowElement extends GemElement<State> {
       <style>
         :host {
           display: flex;
-          flex-direction: column;
-          background: ${theme.backgroundColor};
-          gap: ${theme.panelContentGap};
           position: ${isGrid ? 'relative' : 'absolute'};
           left: ${position?.[0]}px;
           top: ${position?.[1]}px;
           width: ${dimension?.[0]}px;
           height: ${dimension?.[1]}px;
           grid-area: ${gridArea || 'none'};
-          z-index: ${isGrid ? 0 : zIndex};
-          overflow: ${isGrid ? 'visible' : 'hidden'};
+          z-index: ${isGrid ? 'auto' : zIndex};
+          gap: ${theme.panelContentGap};
+        }
+        :host(:focus-within) {
+          z-index: ${isGrid ? 1 : zIndex};
+        }
+        .window {
+          flex-grow: 1;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          background: ${theme.backgroundColor};
           box-shadow: ${isGrid ? 'none' : '0 0.3em 1em rgba(0, 0, 0, .4)'};
           opacity: ${store.panWindow === this.window ? 0.5 : 1};
           border-radius: ${isGrid ? '0' : '4px'};
-        }
-        :host::after {
-          content: ${isGrid ? 'none' : '""'};
-          pointer-events: none;
-          border-radius: inherit;
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          left: 0;
-          top: 0;
-          box-sizing: border-box;
-          border: 1px solid ${theme.borderColor};
+          border: 1px solid ${isGrid ? 'transparent' : theme.borderColor};
         }
         .bar {
           height: ${WINDOW_TITLEBAR_HEIGHT}px;
           background: ${theme.darkBackgroundColor};
           margin-bottom: calc(0px - ${theme.panelContentGap});
         }
-        .flex {
-          display: flex;
-        }
-        .widthgrow {
-          width: 0;
-          flex-grow: 1;
+        .header,
+        .content {
           overflow: auto;
           scrollbar-width: none;
         }
-        .widthgrow::-webkit-scrollbar {
+        :is(.header, .content)::-webkit-scrollbar {
           width: 0;
         }
         .header {
@@ -238,7 +230,6 @@ export class GemPanelWindowElement extends GemElement<State> {
           border-bottom: 2px solid transparent;
         }
         .title.active {
-          z-index: 1;
           color: ${theme.primaryColor};
           border-color: currentColor;
         }
@@ -261,21 +252,24 @@ export class GemPanelWindowElement extends GemElement<State> {
           height: 0;
           flex-grow: 1;
         }
+        :is(.window, .content):is(:focus, :focus-visible) {
+          outline: none;
+        }
       </style>
-      ${isGrid
-        ? ''
-        : html`
-            <gem-gesture
-              part="window-bar"
-              class="bar"
-              @pan=${this.#onHeaderPan}
-              @end=${this.#onHeaderEnd}
-            ></gem-gesture>
-          `}
-      <div class="flex">
+      <div part="window ${isGrid ? 'cell-window' : 'fixed-window'}" tabindex="0" class="window">
+        ${isGrid
+          ? ''
+          : html`
+              <gem-gesture
+                part="window-bar"
+                class="bar"
+                @pan=${this.#onHeaderPan}
+                @end=${this.#onHeaderEnd}
+              ></gem-gesture>
+            `}
         <gem-gesture
           part="panel-header"
-          class="widthgrow header"
+          class="header"
           @wheel=${this.#onHeaderWheel}
           @pan=${this.#onHeaderPan}
           @end=${this.#onHeaderEnd}
@@ -284,9 +278,8 @@ export class GemPanelWindowElement extends GemElement<State> {
             (p, index) =>
               html`
                 <gem-panel-title
-                  part="panel-title"
+                  part="panel-title ${index === current ? 'panel-active-title' : ''}"
                   exportparts="panel-button"
-                  .active=${index === current}
                   class=${`
                   ${(p === panel && move) || (index !== 0 && p === independentPanel) ? 'hidden' : ''}
                   ${index === current ? 'active' : ''}
@@ -307,10 +300,8 @@ export class GemPanelWindowElement extends GemElement<State> {
           ${panel && move
             ? html`
                 <gem-panel-title
-                  part="panel-title"
+                  part="panel-title panel-drag-title ${panels[current] === panel ? 'panel-active-title' : ''}"
                   exportparts="panel-button"
-                  .drag=${true}
-                  .active=${panels[current] === panel}
                   class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
                   .window=${this.window}
                   .panel=${panel}
@@ -320,11 +311,9 @@ export class GemPanelWindowElement extends GemElement<State> {
               `
             : ''}
         </gem-gesture>
+        <div part="panel-content" class="content">${panels[current].content}</div>
+        ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
       </div>
-      <div part="panel-content" class="flex content">
-        <div class="widthgrow">${panels[current].content}</div>
-      </div>
-      ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
       <gem-panel-handle .window=${this.window}></gem-panel-handle>
     `;
   };

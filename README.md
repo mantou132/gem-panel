@@ -45,7 +45,7 @@ render(
         padding: 0;
         height: 100%;
       }
-      gem-panel::part(window):--fixed {
+      gem-panel::part(fixed-window) {
         box-shadow: 0 0.3em 1em rgb(0 0 0 / 40%);
       }
     </style>

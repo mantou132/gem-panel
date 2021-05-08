@@ -21,15 +21,39 @@ export class GemPanelHandleElement extends GemElement {
   window: Window;
 
   #onSidePan = ({ detail }: CustomEvent<PanEventDetail>, side: Side) => {
-    const { width, height } = (this.getRootNode() as ShadowRoot).host.getBoundingClientRect();
-    const gapStr = getThemeStore(theme).windowGap;
-    let gap = 0;
-    if (gapStr.trim().endsWith('px')) {
-      gap = parseFloat(gapStr);
+    if (this.window.isGridWindow()) {
+      const { width, height } = (this.getRootNode() as ShadowRoot).host.getBoundingClientRect();
+      const gapStr = getThemeStore(theme).windowGap;
+      let gap = 0;
+      if (gapStr.trim().endsWith('px')) {
+        gap = parseFloat(gapStr);
+      } else {
+        console.info('Cause the moving axis to shake!');
+      }
+      moveSide({ window: this.window }, side, { width, height, gap, movementX: detail.x, movementY: detail.y });
     } else {
-      console.info('Cause the moving axis to shake!');
+      const movement = {
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0,
+      };
+      if (side === 'top') {
+        movement.h = -detail.y;
+        movement.y = detail.y;
+      }
+      if (side === 'right') {
+        movement.w = detail.x;
+      }
+      if (side === 'bottom') {
+        movement.h = detail.y;
+      }
+      if (side === 'left') {
+        movement.x = detail.x;
+        movement.w = -detail.x;
+      }
+      updateWindowRect({ window: this.window }, [movement.x, movement.y, movement.w, movement.h]);
     }
-    moveSide({ window: this.window }, side, { width, height, gap, movementX: detail.x, movementY: detail.y });
   };
 
   #onCornerPan = ({ detail: { x, y } }: CustomEvent<PanEventDetail>, corner: Corner) => {
@@ -68,6 +92,8 @@ export class GemPanelHandleElement extends GemElement {
       <style>
         :host {
           display: contents;
+          --width: ${isGrid ? theme.windowGap : '8px'};
+          --offset: calc(0px - var(--width) / ${isGrid ? 1 : 2});
         }
         .top,
         .right,
@@ -84,64 +110,65 @@ export class GemPanelHandleElement extends GemElement {
         .top,
         .bottom {
           width: 100%;
-          height: ${theme.windowGap};
+          height: var(--width);
         }
         .right,
         .left {
-          width: ${theme.windowGap};
+          width: var(--width);
           height: 100%;
         }
         .top {
-          bottom: 100%;
+          top: var(--offset);
         }
         .right {
-          left: 100%;
+          right: var(--offset);
         }
         .bottom {
-          top: 100%;
+          bottom: var(--offset);
         }
         .left {
-          right: 100%;
+          left: var(--offset);
         }
         .top-left,
         .top-right,
         .bottom-right,
         .bottom-left {
           position: absolute;
-          width: 8px;
-          height: 8px;
+          width: var(--width);
+          height: var(--width);
           z-index: 1;
         }
         .top-left {
-          top: 0;
-          left: 0;
+          top: var(--offset);
+          left: var(--offset);
           cursor: nwse-resize;
         }
         .top-right {
-          top: 0;
-          right: 0;
+          top: var(--offset);
+          right: var(--offset);
           cursor: nesw-resize;
         }
         .bottom-right {
-          bottom: 0;
-          right: 0;
+          bottom: var(--offset);
+          right: var(--offset);
           cursor: nwse-resize;
         }
         .bottom-left {
-          bottom: 0;
-          left: 0;
+          bottom: var(--offset);
+          left: var(--offset);
           cursor: nesw-resize;
         }
       </style>
+      ${sides.map(
+        (side) => html`
+          <gem-gesture
+            class=${side}
+            @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onSidePan(evt, side)}
+          ></gem-gesture>
+        `,
+      )}
       ${isGrid
-        ? sides.map(
-            (side) => html`
-              <gem-gesture
-                class=${side}
-                @pan=${(evt: CustomEvent<PanEventDetail>) => this.#onSidePan(evt, side)}
-              ></gem-gesture>
-            `,
-          )
+        ? ''
         : corners.map(
             (corner) => html`
               <gem-gesture

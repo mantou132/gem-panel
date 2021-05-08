@@ -34,17 +34,21 @@
 
 ## Parts
 
-| Part            | CSS State           |
-| --------------- | ------------------- |
-| `window`        | `--fixed`           |
-| `window-bar`    |                     |
-| `panel-header`  |                     |
-| `panel-content` |                     |
-| `panel-title`   | `--active`,`--drag` |
-| `panel-button`  |                     |
-| `panel-loader`  |                     |
-| `menu`          |                     |
-| `menu-item`     |                     |
+| Part                 |
+| -------------------- |
+| `window`             |
+| `fixed-window`       |
+| `cell-window`        |
+| `window-bar`         |
+| `panel-header`       |
+| `panel-title`        |
+| `panel-active-title` |
+| `panel-drag-title`   |
+| `panel-content`      |
+| `panel-button`       |
+| `panel-loader`       |
+| `menu`               |
+| `menu-item`          |
 
 ## Type
 

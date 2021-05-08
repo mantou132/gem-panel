@@ -153,6 +153,7 @@ export class GemPanelElement extends GemElement {
           grid-template-columns: ${gridTemplateColumns};
           cursor: default;
           user-select: none;
+          -webkit-user-select: none;
           background: ${theme.darkBackgroundColor};
           color: ${theme.secondaryColor};
           font-family: ${theme.fontFamily};
@@ -163,13 +164,25 @@ export class GemPanelElement extends GemElement {
         windows,
         (w) => w.id,
         (window) =>
-          html`<gem-panel-window
-            part="window"
-            exportparts="window-bar,panel-header,panel-content,panel-title,panel-button,panel-loader"
-            .fixed=${!window.isGridWindow()}
-            .window=${window}
-            tabindex="0"
-          ></gem-panel-window>`,
+          html`
+            <gem-panel-window
+              exportparts="
+                window,
+                fixed-window,
+                cell-window,
+                window-bar,
+                panel-header,
+                panel-title,
+                panel-drag-title,
+                panel-active-title,
+                panel-content,
+                panel-button,
+                panel-loader
+              "
+              .fixed=${!window.isGridWindow()}
+              .window=${window}
+            ></gem-panel-window>
+          `,
       )}
       <gem-panel-menu exportparts="menu,menu-item"></gem-panel-menu>
     `;
