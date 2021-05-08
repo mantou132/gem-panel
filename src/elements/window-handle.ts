@@ -98,8 +98,13 @@ export class GemPanelHandleElement extends GemElement {
         .top,
         .right,
         .bottom,
-        .left {
+        .left,
+        .top-left,
+        .top-right,
+        .bottom-right,
+        .bottom-left {
           position: absolute;
+          z-index: 1;
         }
         :is(.top, .bottom) {
           cursor: row-resize;
@@ -133,10 +138,8 @@ export class GemPanelHandleElement extends GemElement {
         .top-right,
         .bottom-right,
         .bottom-left {
-          position: absolute;
           width: var(--width);
           height: var(--width);
-          z-index: 1;
         }
         .top-left {
           top: var(--offset);

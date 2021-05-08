@@ -211,7 +211,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           width: ${dimension?.[0]}px;
           height: ${dimension?.[1]}px;
           grid-area: ${gridArea || 'none'};
-          z-index: ${isGrid ? 'auto' : zIndex};
+          z-index: ${isGrid ? 0 : zIndex};
           gap: ${theme.panelContentGap};
         }
         :host(:focus-within) {
@@ -279,6 +279,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           padding: ${theme.panelContentGap};
           padding-top: 0;
           position: relative;
+          z-index: 1;
           height: 0;
           flex-grow: 1;
           display: flex;
