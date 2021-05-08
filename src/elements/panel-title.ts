@@ -9,7 +9,8 @@ export class GemPanelTitleElement extends GemElement {
   window: Window;
   panel: Panel;
 
-  #clickHandle = (evt: MouseEvent) => {
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=1206640
+  #pointerDownHandle = (evt: MouseEvent) => {
     evt.stopPropagation();
     const { window, panel } = this;
     const defaultMenus = [
@@ -22,7 +23,13 @@ export class GemPanelTitleElement extends GemElement {
         handle: () => closeWindow({ window }),
       },
     ];
-    openMenu(evt.x, evt.y, [...(store.openPanelMenuBefore?.(panel, window) || []), ...defaultMenus]);
+    setTimeout(() => {
+      const activeElement = (this.getRootNode() as ShadowRoot)?.activeElement;
+      openMenu(activeElement as HTMLElement, evt.x, evt.y, [
+        ...(store.openPanelMenuBefore?.(panel, window) || []),
+        ...defaultMenus,
+      ]);
+    });
   };
 
   render = () => {
@@ -73,7 +80,7 @@ export class GemPanelTitleElement extends GemElement {
         }
       </style>
       <slot></slot>
-      <span part="panel-button" class="panel-button" @pointerdown=${this.#clickHandle}></span>
+      <span part="panel-button" class="panel-button" @pointerdown=${this.#pointerDownHandle}></span>
     `;
   };
 }

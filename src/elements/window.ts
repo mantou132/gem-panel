@@ -281,8 +281,6 @@ export class GemPanelWindowElement extends GemElement<State> {
           z-index: 1;
           height: 0;
           flex-grow: 1;
-          display: flex;
-          flex-direction: column;
         }
         :is(.window, .content):is(:focus, :focus-visible) {
           outline: none;

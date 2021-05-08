@@ -7,6 +7,7 @@ export interface MenuItem {
 }
 
 type MenuState = {
+  activeElement: HTMLElement | null;
   open: boolean;
   menus: MenuItem[];
   x: number;
@@ -14,17 +15,19 @@ type MenuState = {
 };
 
 export const menuStore = createStore<MenuState>({
+  activeElement: null,
   open: false,
   menus: [],
   x: 0,
   y: 0,
 });
 
-export function openMenu(x: number, y: number, menus: MenuItem[]) {
-  updateStore(menuStore, { open: true, x, y, menus });
+export function openMenu(activeElement: HTMLElement | null, x: number, y: number, menus: MenuItem[]) {
+  updateStore(menuStore, { open: true, x, y, menus, activeElement });
 }
 
-export function closeMenu() {
+export function pointerDownHandle() {
+  setTimeout(() => menuStore.activeElement?.focus());
   updateStore(menuStore, { open: false });
 }
 
@@ -32,7 +35,7 @@ export function closeMenu() {
 @connectStore(menuStore)
 export class GemPanelMenuElement extends GemElement {
   mounted = () => {
-    this.addEventListener('click', closeMenu);
+    this.addEventListener('pointerdown', pointerDownHandle);
   };
 
   render = () => {
@@ -84,7 +87,7 @@ export class GemPanelMenuElement extends GemElement {
       </style>
       <div part="menu" class="menu">
         ${menuStore.menus.map(
-          ({ text, handle }) => html`<div part="menu-item" class="item" @click=${handle}>${text}</div>`,
+          ({ text, handle }) => html`<div part="menu-item" class="item" @pointerdown=${handle}>${text}</div>`,
         )}
       </div>
     `;

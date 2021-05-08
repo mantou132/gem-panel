@@ -184,7 +184,6 @@ export class GemPanelElement extends GemElement {
                 panel-button,
                 panel-loader
               "
-              .fixed=${!window.isGridWindow()}
               .window=${window}
             ></gem-panel-window>
           `,
