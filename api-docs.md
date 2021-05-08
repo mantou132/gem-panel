@@ -2,16 +2,16 @@
 
 ## Properties
 
-| Property              | Attribute       | Modifiers | Type                                                                                                                                                                                                                                                                 | Default  |
-| --------------------- | --------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `cache`               | `cache`         |           | `boolean`                                                                                                                                                                                                                                                            |          |
-| `cacheVersion`        | `cache-version` |           | `string`                                                                                                                                                                                                                                                             |          |
-| `config`              |                 |           | `Config \| undefined`                                                                                                                                                                                                                                                | "config" |
-| `theme`               |                 |           | `Partial<SomeType<{ fontSize: string; fontFamily: string; primaryColor: string; secondaryColor: string; focusColor: string; borderColor: string; backgroundColor: string; darkBackgroundColor: string; windowGap: string; panelContentGap: string; }>> \| undefined` |          |
-| `openPanelMenuBefore` |                 |           | `OpenPanelMenuBeforeCallback \| undefined`                                                                                                                                                                                                                           |          |
-| `activePanels`        |                 | readonly  | `Panel[]`                                                                                                                                                                                                                                                            |          |
-| `hiddenPanels`        |                 | readonly  | `Panel[]`                                                                                                                                                                                                                                                            |          |
-| `showPanels`          |                 | readonly  | `Panel[]`                                                                                                                                                                                                                                                            |          |
+| Property              | Attribute       | Modifiers | Type                                       | Default |
+| --------------------- | --------------- | --------- | ------------------------------------------ | ------- |
+| `cache`               | `cache`         |           | `boolean`                                  | `false` |
+| `cacheVersion`        | `cache-version` |           | `string`                                   | `""`    |
+| `config`              |                 |           | `Config \| undefined`                      |         |
+| `theme`               |                 |           | `Theme \| undefined`                       |         |
+| `openPanelMenuBefore` |                 |           | `OpenPanelMenuBeforeCallback \| undefined` |         |
+| `activePanels`        |                 | readonly  | `Panel[]`                                  |         |
+| `hiddenPanels`        |                 | readonly  | `Panel[]`                                  |         |
+| `showPanels`          |                 | readonly  | `Panel[]`                                  |         |
 
 ## Methods
 
@@ -52,20 +52,9 @@
 
 ## Type
 
+### Config
+
 ```ts
-export declare const theme: {
-  fontSize: string;
-  fontFamily: string;
-  primaryColor: string;
-  secondaryColor: string;
-  focusColor: string;
-  borderColor: string;
-  backgroundColor: string;
-  darkBackgroundColor: string;
-  windowGap: string;
-  panelContentGap: string;
-};
-export declare type Theme = Partial<typeof theme>;
 export declare type PannelContent = TemplateResult | string;
 export declare class Panel {
   title: string;
@@ -89,5 +78,39 @@ interface ConfigOptional {
 }
 export declare class Config implements ConfigOptional {
   constructor(allWindows?: Window[], panels?: Panel[], optional?: ConfigOptional);
+}
+```
+
+### Theme
+
+```ts
+export declare const theme: {
+  fontSize: string;
+  fontFamily: string;
+  primaryColor: string;
+  secondaryColor: string;
+  focusColor: string;
+  borderColor: string;
+  backgroundColor: string;
+  darkBackgroundColor: string;
+  windowGap: string;
+  panelContentGap: string;
+};
+export declare type Theme = Partial<typeof theme>;
+```
+
+### GemPanelElement constructor
+
+```ts
+export declare class GemPanelElement extends GemElement {
+  constructor(
+    config: Config,
+    optionnal?: {
+      theme?: Theme;
+      cache?: boolean;
+      cacheVersion?: string;
+      openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
+    },
+  );
 }
 ```

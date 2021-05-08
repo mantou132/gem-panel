@@ -24,7 +24,7 @@ import {
   deletePanelFromWindow,
   deleteHiddenPanel,
 } from '../lib/store';
-import { theme } from '../lib/theme';
+import { theme, Theme } from '../lib/theme';
 import { isOutside } from '../lib/utils';
 import { MenuItem } from './menu';
 import { GemPanelWindowElement, windowTagName } from './window';
@@ -38,14 +38,19 @@ export type OpenPanelMenuBeforeCallback = (panel: Panel, window: Window) => Menu
 export class GemPanelElement extends GemElement {
   @property openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
   @property config?: Config;
-  @property theme?: Partial<typeof theme>;
+  @property theme?: Theme;
   @boolattribute cache: boolean;
   @attribute cacheVersion: string;
   @emitter panelChange: Emitter<PanelChangeDetail>;
 
   constructor(
     config: Config,
-    optionnal?: { cache?: boolean; cacheVersion?: string; openPanelMenuBefore?: OpenPanelMenuBeforeCallback },
+    optionnal?: {
+      theme?: Theme;
+      cache?: boolean;
+      cacheVersion?: string;
+      openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
+    },
   ) {
     super();
     this.config = config;
@@ -189,7 +194,7 @@ export class GemPanelElement extends GemElement {
   };
 
   get hiddenPanels() {
-    return store.config.panels;
+    return [...store.config.panels];
   }
 
   get showPanels() {
@@ -201,7 +206,7 @@ export class GemPanelElement extends GemElement {
   }
 
   get windows() {
-    return store.config.windows;
+    return [...store.config.windows];
   }
 
   openHiddenPanel(arg: string | Panel) {
