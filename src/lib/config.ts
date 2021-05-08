@@ -346,16 +346,16 @@ export class Config implements ConfigOptional {
     window.zIndex = maxZIndex + 1;
   }
 
-  removeWindow(window: Window, rect?: [number, number, number, number]) {
-    if (rect) {
-      const [x, y, w, h] = rect;
+  removeWindow(window: Window, newWindowRect?: [number, number, number, number]) {
+    if (newWindowRect) {
+      const [x, y, w, h] = newWindowRect;
       window.position = [x, y];
       window.dimension = [w, h];
       this.focusWindow(window);
     } else {
       removeItem(this.windows, window);
+      this.panels.push(...window.panels);
     }
-    this.panels.push(...window.panels);
     const areas = this.#findAreas(window);
     const { minRow, maxRow, minColumn, maxColumn, rows, columns } = this.#findAreasBoundary(areas);
     const topAreas = [...new Set(columns.map((column) => this.#areas[minRow - 1]?.[column]).filter((e) => !!e))];
@@ -462,7 +462,7 @@ export class Config implements ConfigOptional {
         swapPosition(this.windows, window, newWindow);
         [newWindow.id, window.id] = [window.id, newWindow.id];
       }
-      this.closePanel(window, panel);
+      this.closePanel(window, panel, true);
     }
     return newWindow;
   }
