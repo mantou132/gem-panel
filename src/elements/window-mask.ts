@@ -1,43 +1,48 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
-import { WINDOW_HOVER_BORDER } from '../lib/const';
+import { WINDOW_HOVER_DETECT_BORDER, WINDOW_HOVER_DETECT_HEADER_HEIGHT } from '../lib/const';
 import { store } from '../lib/store';
 import { theme } from '../lib/theme';
 
 const sides = ['top', 'right', 'bottom', 'left'] as const;
 
-export type HoverWindowPosition = typeof sides[number] | 'center';
+export type HoverWindowPosition = typeof sides[number] | 'center' | 'header';
 
 @customElement('gem-panel-mask')
 @connectStore(store)
 export class GemPanelMaskElement extends GemElement {
   render = () => {
+    const position = store.hoverWindowPosition;
+
     return html`
       <style>
         :host {
           display: contents;
         }
+        .header,
         .center,
-        .top,
-        .right,
-        .bottom,
-        .left {
+        .side {
           position: absolute;
           z-index: 1;
           box-sizing: border-box;
-          width: 100%;
-          height: 100%;
+          margin: 0;
           top: 0;
+          right: 0;
+          bottom: 0;
           left: 0;
+        }
+        .header {
+          background: ${theme.focusColor};
+          opacity: 0.1;
+          height: ${WINDOW_HOVER_DETECT_HEADER_HEIGHT}px;
+          bottom: auto;
         }
         .center {
           background: ${theme.focusColor};
           opacity: 0.2;
         }
-        .top,
-        .right,
-        .bottom,
-        .left {
-          border: ${WINDOW_HOVER_BORDER}px solid transparent;
+        .side {
+          top: ${WINDOW_HOVER_DETECT_HEADER_HEIGHT}px;
+          border: ${WINDOW_HOVER_DETECT_BORDER}px solid transparent;
           opacity: 0.1;
         }
         .top {
@@ -56,9 +61,12 @@ export class GemPanelMaskElement extends GemElement {
           opacity: 0.4;
         }
       </style>
-      ${store.hoverWindowPosition === 'center'
+      ${position === 'header' || position === 'center'
         ? html`<div class="center"></div>`
-        : sides.map((e) => html`<div class="${e} ${e === store.hoverWindowPosition ? 'active' : ''}"></div>`)}
+        : html`
+            <div class="header"></div>
+            ${sides.map((e) => html`<div class="side ${e} ${e === position ? 'active' : ''}"></div>`)}
+          `}
     `;
   };
 }

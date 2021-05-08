@@ -1,5 +1,5 @@
 import { createStore, updateStore } from '@mantou/gem';
-import { DROP_DETECTION_DELAY, WINDOW_HOVER_BORDER } from './const';
+import { DROP_DETECTION_DELAY, WINDOW_HOVER_DETECT_BORDER, WINDOW_HOVER_DETECT_HEADER_HEIGHT } from './const';
 import { Config, Panel, PannelContent, Window } from './config';
 import { detectPosition } from './utils';
 import { GemPanelWindowElement } from '../elements/window';
@@ -74,17 +74,30 @@ export function setWindowPanTimeout(
     if (hoverWindowEle) {
       const { x, y, width, height } = hoverWindowEle.getBoundingClientRect();
       const isCenterPostion =
-        !hoverWindowEle.window.isGridWindow() || width < 4 * WINDOW_HOVER_BORDER || height < 3 * WINDOW_HOVER_BORDER;
+        !hoverWindowEle.window.isGridWindow() ||
+        width < 4 * WINDOW_HOVER_DETECT_BORDER ||
+        height < 3 * WINDOW_HOVER_DETECT_BORDER + 2 * WINDOW_HOVER_DETECT_HEADER_HEIGHT;
+      const isHeader = clientY > y && clientY < y + WINDOW_HOVER_DETECT_HEADER_HEIGHT;
       updateStore(store, {
         hoverWindow: hoverWindowEle.window,
         panWindow: currentPanWindow,
         hoverWindowPosition: isCenterPostion
           ? 'center'
-          : detectPosition([x, y, width, height], [clientX, clientY], WINDOW_HOVER_BORDER),
+          : isHeader
+          ? 'header'
+          : detectPosition(
+              [x, y + WINDOW_HOVER_DETECT_HEADER_HEIGHT, width, height - WINDOW_HOVER_DETECT_HEADER_HEIGHT],
+              [clientX, clientY],
+              WINDOW_HOVER_DETECT_BORDER,
+            ),
       });
     }
   };
-  updateStore(store, { windowPanTimer: window.setTimeout(detectHoverWindow, DROP_DETECTION_DELAY) });
+  if (store.hoverWindow) {
+    detectHoverWindow();
+  } else {
+    updateStore(store, { windowPanTimer: window.setTimeout(detectHoverWindow, DROP_DETECTION_DELAY) });
+  }
 }
 
 export function cancelHandleWindow() {
@@ -95,7 +108,7 @@ export function dropHandleWindow({ window }: WindowConfig) {
   clearTimeout(store.windowPanTimer);
   if (store.hoverWindow) {
     store.config.focusWindow(store.hoverWindow);
-    if (store.hoverWindowPosition === 'center') {
+    if (store.hoverWindowPosition === 'center' || store.hoverWindowPosition === 'header') {
       store.config.mergeWindow(window, store.hoverWindow);
     } else {
       store.config.createGridWindow(window, store.hoverWindow, store.hoverWindowPosition);

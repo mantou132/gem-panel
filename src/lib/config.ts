@@ -7,8 +7,8 @@ import {
   WINDOW_DEFAULT_DIMENSION,
   WINDOW_DEFAULT_GAP,
   WINDOW_DEFAULT_POSITION,
-  WINDOW_MAX_HEIGHT,
-  WINDOW_MAX_WIDTH,
+  WINDOW_MIN_HEIGHT,
+  WINDOW_MIN_WIDTH,
 } from './const';
 import {
   findLimintPosition,
@@ -334,10 +334,10 @@ export class Config implements ConfigOptional {
     const [originW = 0, originH = 0] = window.dimension || [];
     const w = originW + mw;
     const h = originH + mh;
-    const x = w < WINDOW_MAX_WIDTH ? originX : originX + mx;
-    const y = h < WINDOW_MAX_HEIGHT ? originY : originY + my;
+    const x = w < WINDOW_MIN_WIDTH ? originX : originX + mx;
+    const y = h < WINDOW_MIN_HEIGHT ? originY : originY + my;
     window.position = [Math.max(x, 0), Math.max(y, 0)];
-    window.dimension = [w < WINDOW_MAX_WIDTH || x < 0 ? originW : w, h < WINDOW_MAX_HEIGHT || y < 0 ? originH : h];
+    window.dimension = [w < WINDOW_MIN_WIDTH || x < 0 ? originW : w, h < WINDOW_MIN_HEIGHT || y < 0 ? originH : h];
   }
 
   focusWindow(window: Window) {
@@ -563,7 +563,7 @@ export class Config implements ConfigOptional {
         args.movementY,
         args.height,
         height,
-        WINDOW_MAX_HEIGHT,
+        WINDOW_MIN_HEIGHT,
       );
     } else {
       move(
@@ -576,7 +576,7 @@ export class Config implements ConfigOptional {
         args.movementX,
         args.width,
         width,
-        WINDOW_MAX_WIDTH,
+        WINDOW_MIN_WIDTH,
       );
     }
     this.#stringifyGridTemplate();

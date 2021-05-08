@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore, state } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
@@ -48,7 +48,6 @@ type State = {
 @customElement(windowTagName)
 @connectStore(store)
 export class GemPanelWindowElement extends GemElement<State> {
-  @state fixed: boolean;
   window: Window;
 
   state: State = {
