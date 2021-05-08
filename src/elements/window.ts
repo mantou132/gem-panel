@@ -79,36 +79,13 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onMoveTitle = (evt: PointerEvent) => {
-    const { panel, move, offsetX, offsetY, parentOffsetY, clientX, clientY, independentWindow } = this.state;
-    if (independentWindow) {
-      clearTimeout(store.windowPanTimer);
-      this.setState({ clientX: evt.clientX, clientY: evt.clientY });
-      const [x, y] = [evt.clientX - clientX, evt.clientY - clientY];
-      updateWindowPosition({ window: independentWindow }, [x, y]);
-      setWindowPanTimeout(this, independentWindow, [evt.clientX, evt.clientY]);
-      if (distance(x, y) > 4) {
-        cancelHandleWindow();
-      }
-    }
+    const { panel, move, offsetY, parentOffsetY, clientX, clientY } = this.state;
     if (!panel) return;
     // first move
     if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < ENTWE_PANEL_SORT_DISTANCE) return;
 
     if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > NEWWINDOW_FROM_PANEL_Y_OFFSET) {
-      const { width, height } = this.getBoundingClientRect();
-      const independentWindow = independentPanel(this, panel, [
-        evt.clientX - offsetX,
-        evt.clientY - offsetY - WINDOW_TITLEBAR_HEIGHT,
-        width,
-        height,
-      ]);
-      this.setState({
-        independentWindow,
-        panel: null,
-        move: false,
-        clientX: evt.clientX,
-        clientY: evt.clientY,
-      });
+      this.#createIndependentWindow(evt);
     } else {
       this.setState({ move: true, clientX: evt.clientX, clientY: evt.clientY });
       const ele = this.shadowRoot?.elementFromPoint(evt.clientX, parentOffsetY + offsetY);
@@ -119,14 +96,53 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onMoveTitleEnd = () => {
-    const { independentWindow } = this.state;
     // pointerup -> click
     setTimeout(() => {
-      if (independentWindow) {
-        dropHandleWindow({ window: independentWindow });
-      }
-      this.setState({ panel: null, move: false, independentWindow: null });
+      this.setState({ panel: null, move: false });
     });
+  };
+
+  #createIndependentWindow = (evt: PointerEvent) => {
+    const { panel, offsetX, offsetY } = this.state;
+    if (!panel) return;
+    // Transfer event target
+    this.setPointerCapture(evt.pointerId);
+    const { width, height } = this.getBoundingClientRect();
+    const independentWindow = independentPanel(this, panel, [
+      evt.clientX - offsetX,
+      evt.clientY - offsetY - WINDOW_TITLEBAR_HEIGHT,
+      width,
+      height,
+    ]);
+    this.setState({
+      independentWindow,
+      panel: null,
+      move: false,
+      clientX: evt.clientX,
+      clientY: evt.clientY,
+    });
+  };
+
+  #onMove = (evt: PointerEvent) => {
+    const { clientX, clientY, independentWindow } = this.state;
+    if (independentWindow) {
+      clearTimeout(store.windowPanTimer);
+      this.setState({ clientX: evt.clientX, clientY: evt.clientY });
+      const [x, y] = [evt.clientX - clientX, evt.clientY - clientY];
+      updateWindowPosition({ window: independentWindow }, [x, y]);
+      setWindowPanTimeout(this, independentWindow, [evt.clientX, evt.clientY]);
+      if (distance(x, y) > 4) {
+        cancelHandleWindow();
+      }
+    }
+  };
+
+  #onMoveEnd = () => {
+    const { independentWindow } = this.state;
+    if (independentWindow) {
+      dropHandleWindow({ window: independentWindow });
+      this.setState({ independentWindow: null });
+    }
   };
 
   #onActivePanel = (panel: Panel) => {
@@ -166,6 +182,9 @@ export class GemPanelWindowElement extends GemElement<State> {
 
   mounted = () => {
     this.addEventListener('focus', this.#onFocusWindow);
+    this.addEventListener('pointermove', this.#onMove);
+    this.addEventListener('pointerup', this.#onMoveEnd);
+    this.addEventListener('pointercancel', this.#onMoveEnd);
   };
 
   render = () => {
