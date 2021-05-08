@@ -41,14 +41,16 @@ const onPanelChange = (evt: CustomEvent<PanelChangeDetail>) => {
       setTimeout(() => {
         (evt.target as GemPanelElement).loadContentInPanel(
           title,
-          html`<iframe
-            src="https://ghbtns.com/github-btn.html?user=mantou132&repo=gem-panel&type=watch&count=true&size=large"
-            frameborder="0"
-            scrolling="0"
-            width="170"
-            height="30"
-            title="GitHub"
-          ></iframe>`,
+          html`
+            <iframe
+              src="https://ghbtns.com/github-btn.html?user=mantou132&repo=gem-panel&type=watch&count=true&size=large"
+              frameborder="0"
+              scrolling="0"
+              width="170"
+              height="30"
+              title="GitHub"
+            ></iframe>
+          `,
         );
       }, 1000);
     }

@@ -21,6 +21,7 @@ import { theme } from '../lib/theme';
 import {
   CANCEL_WINDOW_DRAGOVER_DISTANCE,
   ENTWE_PANEL_SORT_DISTANCE,
+  ENTWE_WINDOW_DRAGOVER_DISTANCE,
   NEWWINDOW_FROM_PANEL_Y_OFFSET,
   WINDOW_TITLEBAR_HEIGHT,
 } from '../lib/const';
@@ -41,6 +42,7 @@ type State = {
   parentOffsetY: number;
   clientX: number;
   clientY: number;
+  scrollX: number;
 };
 
 @customElement(windowTagName)
@@ -59,6 +61,7 @@ export class GemPanelWindowElement extends GemElement<State> {
     parentOffsetY: 0,
     clientX: 0,
     clientY: 0,
+    scrollX: 0,
   };
 
   #onMoveTitleStart = (panel: Panel, evt: PointerEvent) => {
@@ -84,10 +87,16 @@ export class GemPanelWindowElement extends GemElement<State> {
     // first move
     if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < ENTWE_PANEL_SORT_DISTANCE) return;
 
+    const target = evt.currentTarget as HTMLElement;
     if (Math.abs(evt.clientY - (parentOffsetY + offsetY)) > NEWWINDOW_FROM_PANEL_Y_OFFSET) {
       this.#createIndependentWindow(evt);
     } else {
-      this.setState({ move: true, clientX: evt.clientX, clientY: evt.clientY });
+      this.setState({
+        move: true,
+        clientX: evt.clientX,
+        clientY: evt.clientY,
+        scrollX: target.offsetParent?.scrollLeft,
+      });
       const ele = this.shadowRoot?.elementFromPoint(evt.clientX, parentOffsetY + offsetY);
       if (ele instanceof GemPanelTitleElement && ele.panel !== panel) {
         updatePanelSort(this, panel, ele.panel);
@@ -155,7 +164,7 @@ export class GemPanelWindowElement extends GemElement<State> {
   #onHeaderPan = ({ detail }: CustomEvent<PanEventDetail>) => {
     clearTimeout(store.windowPanTimer);
     if (this.window.isGridWindow()) {
-      if (distance(detail.x, detail.y) > CANCEL_WINDOW_DRAGOVER_DISTANCE) {
+      if (distance(detail.x, detail.y) > ENTWE_WINDOW_DRAGOVER_DISTANCE) {
         updateWindowType(this, this.getBoundingClientRect());
       }
     } else {
@@ -190,9 +199,7 @@ export class GemPanelWindowElement extends GemElement<State> {
   render = () => {
     const isGrid = this.window.isGridWindow();
     const { panels, gridArea, current = 0, position, dimension, zIndex } = this.window;
-    const { panel, move, offsetX, clientX, parentOffsetX, independentWindow } = this.state;
-    // Render the left panel to keep event listening
-    const independentPanel = independentWindow?.panels[0];
+    const { panel, move, offsetX, clientX, scrollX, parentOffsetX } = this.state;
 
     return html`
       <style>
@@ -234,12 +241,16 @@ export class GemPanelWindowElement extends GemElement<State> {
         :is(.header, .content)::-webkit-scrollbar {
           width: 0;
         }
+        .header-wrap {
+          display: flex;
+        }
         .header {
+          width: 0;
+          flex-grow: 1;
           padding: ${theme.panelContentGap};
           overflow: hidden;
           position: relative;
           display: flex;
-          flex-shrink: 0;
           gap: 1.8em;
         }
         .title {
@@ -261,7 +272,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           position: absolute;
           top: ${theme.panelContentGap};
           left: 0;
-          transform: translateX(${clientX - offsetX - parentOffsetX}px);
+          transform: translateX(${clientX - offsetX - parentOffsetX + scrollX}px);
           border-bottom-color: ${theme.focusColor};
         }
         .content {
@@ -270,6 +281,8 @@ export class GemPanelWindowElement extends GemElement<State> {
           position: relative;
           height: 0;
           flex-grow: 1;
+          display: flex;
+          flex-direction: column;
         }
         :is(.window, .content):is(:focus, :focus-visible) {
           outline: none;
@@ -286,50 +299,53 @@ export class GemPanelWindowElement extends GemElement<State> {
                 @end=${this.#onHeaderEnd}
               ></gem-gesture>
             `}
-        <gem-gesture
-          part="panel-header"
-          class="header"
-          @wheel=${this.#onHeaderWheel}
-          @pan=${this.#onHeaderPan}
-          @end=${this.#onHeaderEnd}
-        >
-          ${panels.concat(independentPanel || []).map(
-            (p, index) =>
-              html`
-                <gem-panel-title
-                  part="panel-title ${index === current ? 'panel-active-title' : ''}"
-                  exportparts="panel-button"
-                  class=${`
-                  ${(p === panel && move) || (index !== 0 && p === independentPanel) ? 'hidden' : ''}
-                  ${index === current ? 'active' : ''}
-                  title
-                `}
-                  .window=${this.window}
-                  .panel=${p}
-                  @click=${() => this.#onActivePanel(p)}
-                  @pointerdown=${(evt: PointerEvent) => this.#onMoveTitleStart(p, evt)}
-                  @pointermove=${this.#onMoveTitle}
-                  @pointerup=${this.#onMoveTitleEnd}
-                  @pointercancel=${this.#onMoveTitleEnd}
-                >
-                  ${p.title}
-                </gem-panel-title>
-              `,
-          )}
-          ${panel && move
-            ? html`
-                <gem-panel-title
-                  part="panel-title panel-drag-title ${panels[current] === panel ? 'panel-active-title' : ''}"
-                  exportparts="panel-button"
-                  class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
-                  .window=${this.window}
-                  .panel=${panel}
-                >
-                  ${panel.title}
-                </gem-panel-title>
-              `
-            : ''}
-        </gem-gesture>
+        <div class="header-wrap">
+          <gem-gesture
+            part="panel-header"
+            class="header"
+            @wheel=${this.#onHeaderWheel}
+            @pan=${this.#onHeaderPan}
+            @end=${this.#onHeaderEnd}
+          >
+            ${panels.map(
+              (p, index) =>
+                html`
+                  <gem-panel-title
+                    part="panel-title ${index === current ? 'panel-active-title' : ''}"
+                    exportparts="panel-button"
+                    class=${`
+                    ${p === panel && move ? 'hidden' : ''}
+                    ${index === current ? 'active' : ''}
+                    title
+                  `}
+                    .window=${this.window}
+                    .panel=${p}
+                    @click=${() => this.#onActivePanel(p)}
+                    @pointerdown=${(evt: PointerEvent) => this.#onMoveTitleStart(p, evt)}
+                    @pointermove=${this.#onMoveTitle}
+                    @pointerup=${this.#onMoveTitleEnd}
+                    @pointercancel=${this.#onMoveTitleEnd}
+                  >
+                    ${p.title}
+                  </gem-panel-title>
+                `,
+            )}
+            ${panel && move
+              ? html`
+                  <gem-panel-title
+                    part="panel-title panel-drag-title ${panels[current] === panel ? 'panel-active-title' : ''}"
+                    exportparts="panel-button"
+                    class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
+                    .window=${this.window}
+                    .panel=${panel}
+                  >
+                    ${panel.title}
+                  </gem-panel-title>
+                `
+              : ''}
+          </gem-gesture>
+        </div>
+        <!-- Insert content here to style the window -->
         <div part="panel-content" class="content">${panels[current].content}</div>
         ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
       </div>
