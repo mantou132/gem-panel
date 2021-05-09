@@ -14,14 +14,21 @@ A custom element`<gem-panel>`, let you easily create layout similar to Adobe Aft
 - Add commands to the panel
 - Cache layout
 - Custom style, [example](./screenshots/style.png)
-- Async load content
+- Async load panel content
 - Typescript support
+- Lightweight, ~20kb(br)
+
+## Install
+
+```bash
+npm i gem-panel
+```
 
 ## Example
 
 ```ts
-import { render, html } from '@mantou/gem';
 import { Config, Panel, Window } from 'gem-panel';
+import { render, html } from '@mantou/gem';
 
 const panel1 = new Panel('p1 title', html`p1 content`);
 const panel2 = new Panel('p2 title');
@@ -69,4 +76,6 @@ render(
 npm i
 # development
 npm run example
+# test
+npm run test
 ```

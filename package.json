@@ -1,7 +1,7 @@
 {
   "name": "gem-panel",
   "version": "0.0.5",
-  "description": "",
+  "description": "A custom element <gem-panel>, let you easily create layout similar to Adobe After Effects.",
   "main": "dist/index.js",
   "module": "index.js",
   "files": [
@@ -16,6 +16,13 @@
     "/helper/"
   ],
   "typings": "index.d.ts",
+  "keywords": [
+    "webcomponents",
+    "custom-elements",
+    "layout",
+    "grid",
+    "adobe-after-effects"
+  ],
   "scripts": {
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
@@ -25,10 +32,10 @@
     "prepare": "npm run lint && npm run build",
     "example": "webpack serve --mode=development",
     "test": "npm run build && karma start --coverage",
-    "test:bs": "npm run build &&  karma start karma.bs.config.js --coverage"
+    "test:bs": "npm run build && karma start karma.bs.config.js --coverage"
   },
   "author": "mantou132",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@mantou/gem": "^1.2.1"
   },
