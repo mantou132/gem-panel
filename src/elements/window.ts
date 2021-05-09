@@ -139,7 +139,7 @@ export class GemPanelWindowElement extends GemElement<State> {
       const [x, y] = [evt.clientX - clientX, evt.clientY - clientY];
       updateWindowPosition({ window: independentWindow }, [x, y]);
       setWindowPanTimeout(this, independentWindow, [evt.clientX, evt.clientY]);
-      if (distance(x, y) > 4) {
+      if (distance(x, y) > CANCEL_WINDOW_DRAGOVER_DISTANCE) {
         cancelHandleWindow();
       }
     }
