@@ -1,6 +1,6 @@
 A custom element`<gem-panel>`, let you easily create layout similar to Adobe After Effects.
 
-[Dome](https://gem-panel.vercel.app/)
+[Demo](https://gem-panel.vercel.app/)
 
 ## Docs
 
@@ -13,7 +13,7 @@ A custom element`<gem-panel>`, let you easily create layout similar to Adobe Aft
 - Drag and drop to adjust the panel sorting
 - Add commands to the panel
 - Cache layout
-- Custom style
+- Custom style, [example](./screenshots/style.png)
 - Async load content
 - Typescript support
 
