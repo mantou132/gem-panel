@@ -15,16 +15,17 @@
 
 ## Methods
 
-| Method               | Type                                                   |
-| -------------------- | ------------------------------------------------------ |
-| `clearCache`         | `(): void`                                             |
-| `closePanel`         | `(arg: string \| Panel): void`                         |
-| `addPanel`           | `(panel: Panel): void`                                 |
-| `deletePanel`        | `(arg: string \| Panel): void`                         |
-| `loadContentInPanel` | `(arg: string \| Panel, content: PannelContent): void` |
-| `openHiddenPanel`    | `(arg: string \| Panel): void`                         |
-| `openPanelInWindow`  | `(arg: string \| Panel, window: Window): void`         |
-| `updateAllPanel`     | `(): void`                                             |
+| Method               | Type                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `clearCache`         | `(): void`                                                                            |
+| `closePanel`         | `(arg: string \| Panel): void`                                                        |
+| `addPanel`           | `(panel: Panel): void`                                                                |
+| `deletePanel`        | `(arg: string \| Panel): void`                                                        |
+| `loadContentInPanel` | `(arg: string \| Panel, content: PannelContent): void`                                |
+| `openHiddenPanel`    | `(arg: string \| Panel): void`                                                        |
+| `openPanelInWindow`  | `(arg: string \| Panel, window: Window): void`                                        |
+| `openContextMenu`    | `(activeElement: HTMLElement \| null, x: number, y: number, menus: MenuItem[]): void` |
+| `updateAllPanel`     | `(): void`                                                                            |
 
 ## Events
 

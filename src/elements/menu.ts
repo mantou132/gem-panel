@@ -22,7 +22,7 @@ export const menuStore = createStore<MenuState>({
   y: 0,
 });
 
-export function openMenu(activeElement: HTMLElement | null, x: number, y: number, menus: MenuItem[]) {
+export function openContextMenu(activeElement: HTMLElement | null, x: number, y: number, menus: MenuItem[]) {
   updateStore(menuStore, { open: true, x, y, menus, activeElement });
 }
 

@@ -1,7 +1,7 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { Panel, Window } from '../lib/config';
 import { closePanel, closeWindow, store } from '../lib/store';
-import { openMenu } from './menu';
+import { openContextMenu } from './menu';
 
 @customElement('gem-panel-title')
 @connectStore(store)
@@ -25,7 +25,7 @@ export class GemPanelTitleElement extends GemElement {
     ];
     setTimeout(() => {
       const activeElement = (this.getRootNode() as ShadowRoot)?.activeElement;
-      openMenu(activeElement as HTMLElement, evt.x, evt.y, [
+      openContextMenu(activeElement as HTMLElement, evt.x, evt.y, [
         ...(store.openPanelMenuBefore?.(panel, window) || []),
         ...defaultMenus,
       ]);

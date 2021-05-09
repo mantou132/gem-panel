@@ -26,7 +26,7 @@ import {
 } from '../lib/store';
 import { theme, Theme } from '../lib/theme';
 import { isOutside } from '../lib/utils';
-import { MenuItem } from './menu';
+import { MenuItem, openContextMenu } from './menu';
 import { GemPanelWindowElement, windowTagName } from './window';
 import './menu';
 
@@ -257,5 +257,9 @@ export class GemPanelElement extends GemElement {
 
   clearCache() {
     localStorage.removeItem(this.#getKey());
+  }
+
+  openContextMenu(activeElement: HTMLElement | null, x: number, y: number, menus: MenuItem[]) {
+    openContextMenu(activeElement, x, y, menus);
   }
 }
