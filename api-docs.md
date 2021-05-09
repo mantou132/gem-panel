@@ -59,9 +59,11 @@ export declare type PannelContent = TemplateResult | string;
 export declare class Panel {
   title: string;
   content?: PannelContent;
-  constructor(title?: string, content?: PannelContent);
+  windowType?: string;
+  constructor(title?: string, content?: PannelContent, windowType?: string);
 }
 interface WindowOptional {
+  type?: string;
   gridArea?: string;
   current?: number;
   position?: [number, number];

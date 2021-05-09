@@ -78,19 +78,28 @@ export function setWindowPanTimeout(
         width < 4 * WINDOW_HOVER_DETECT_BORDER ||
         height < 3 * WINDOW_HOVER_DETECT_BORDER + 2 * WINDOW_HOVER_DETECT_HEADER_HEIGHT;
       const isHeader = clientY > y && clientY < y + WINDOW_HOVER_DETECT_HEADER_HEIGHT;
-      updateStore(store, {
-        hoverWindow: hoverWindowEle.window,
-        panWindow: currentPanWindow,
-        hoverWindowPosition: isCenterPostion
-          ? 'center'
-          : isHeader
-          ? 'header'
-          : detectPosition(
-              [x, y + WINDOW_HOVER_DETECT_HEADER_HEIGHT, width, height - WINDOW_HOVER_DETECT_HEADER_HEIGHT],
-              [clientX, clientY],
-              WINDOW_HOVER_DETECT_BORDER,
-            ),
-      });
+      const hoverWindowPosition = isCenterPostion
+        ? 'center'
+        : isHeader
+        ? 'header'
+        : detectPosition(
+            [x, y + WINDOW_HOVER_DETECT_HEADER_HEIGHT, width, height - WINDOW_HOVER_DETECT_HEADER_HEIGHT],
+            [clientX, clientY],
+            WINDOW_HOVER_DETECT_BORDER,
+          );
+
+      if (
+        (hoverWindowPosition === 'center' || hoverWindowPosition === 'header') &&
+        hoverWindowEle.window.type !== currentPanWindow.type
+      ) {
+        cancelHandleWindow();
+      } else {
+        updateStore(store, {
+          hoverWindow: hoverWindowEle.window,
+          panWindow: currentPanWindow,
+          hoverWindowPosition,
+        });
+      }
     }
   };
   if (store.hoverWindow) {
