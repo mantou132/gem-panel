@@ -23,7 +23,7 @@ export type PannelContent = TemplateResult | string;
 
 export class Panel {
   title: string;
-  content?: PannelContent;
+  content: PannelContent;
   windowType?: string;
 
   static defaultContent = html`<gem-panel-placeholder></gem-panel-placeholder>`;
@@ -61,9 +61,9 @@ export class Window implements WindowOptional {
   id: string;
   type?: string;
   gridArea?: string;
-  current?: number;
+  current: number;
   position?: [number, number];
-  zIndex?: number;
+  zIndex: number;
   dimension?: [number, number];
   panels: Panel[];
 
@@ -74,10 +74,10 @@ export class Window implements WindowOptional {
   constructor(panels: Panel[] = [], optional: WindowOptional = {}) {
     const { gridArea = '', current = 0, position, dimension, zIndex = 1, type } = optional;
     this.id = randomStr();
-    this.gridArea = gridArea;
-    this.current = current;
-    this.panels = panels;
     this.zIndex = zIndex + 10;
+    this.current = current;
+    this.gridArea = gridArea;
+    this.panels = panels;
     this.type = type || panels[0]?.windowType;
     if (position || dimension) {
       this.position = position || WINDOW_DEFAULT_POSITION;
@@ -347,9 +347,11 @@ export class Config implements ConfigOptional {
   }
 
   focusWindow(window: Window) {
-    if (window.isGridWindow()) return;
-    const maxZIndex = Math.max(...this.windows.map((w) => w.zIndex || 0));
+    if (window.isGridWindow()) return false;
+    const maxZIndex = Math.max(...this.windows.filter((w) => w !== window).map((w) => w.zIndex));
+    if (window.zIndex > maxZIndex) return false;
     window.zIndex = maxZIndex + 1;
+    return true;
   }
 
   removeWindow(window: Window, newWindowRect?: [number, number, number, number]) {
@@ -404,7 +406,7 @@ export class Config implements ConfigOptional {
     removeItem(this.windows, window);
     const targetLen = target.panels.length;
     target.panels.push(...window.panels);
-    target.changeCurrent(targetLen + (window.current || 0));
+    target.changeCurrent(targetLen + window.current);
   }
 
   createGridWindow(window: Window, hoverWindow: Window, side: Side) {
@@ -463,7 +465,7 @@ export class Config implements ConfigOptional {
     this.focusWindow(newWindow);
     this.windows.push(newWindow);
     if (window) {
-      if (panel === window.panels[window.current || 0]) {
+      if (panel === window.panels[window.current]) {
         // `repeat` 在 chrome 中不能复用元素，所以手动调整位置
         swapPosition(this.windows, window, newWindow);
         [newWindow.id, window.id] = [window.id, newWindow.id];
@@ -489,7 +491,7 @@ export class Config implements ConfigOptional {
 
   closePanel(window: Window, panel: Panel, isDelete = false) {
     const panelIndex = window.panels.findIndex((e) => e === panel);
-    const closerIndex = getNewFocusElementIndex(window.panels, window.current || 0, panelIndex);
+    const closerIndex = getNewFocusElementIndex(window.panels, window.current, panelIndex);
     window.panels.splice(panelIndex, 1);
     if (!isDelete) this.panels.push(panel);
     if (closerIndex >= 0) {

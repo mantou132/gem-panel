@@ -201,7 +201,7 @@ export class GemPanelElement extends GemElement {
   }
 
   get activePanels() {
-    return store.config.windows.map((w) => w.panels[w.current || 0]);
+    return store.config.windows.map((w) => w.panels[w.current]);
   }
 
   get windows() {
