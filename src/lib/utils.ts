@@ -68,6 +68,21 @@ export function isOutside(rect: DOMRect, target: DOMRect) {
   return false;
 }
 
+export function keyBy<T>(arr: T[], key: keyof T) {
+  const obj: { [name: string]: T } = {};
+  for (const ele of arr) {
+    obj[(ele[key] as unknown) as string] = ele;
+  }
+  return obj;
+}
+
+export function exclude<T>(obj: { [name: string]: T }, key: keyof T, arr: T[]) {
+  for (const ele of arr) {
+    delete obj[(ele[key] as unknown) as string];
+  }
+  return obj;
+}
+
 // only read and modify element
 export function getFlipMatrix<T>(matrix: T[][]) {
   return new Proxy(matrix, {

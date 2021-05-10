@@ -1,8 +1,8 @@
-import { TemplateResult, html, randomStr } from '@mantou/gem';
+import { randomStr } from '@mantou/gem';
 
 import { MoveSideArgs, Side } from '../elements/window-handle';
-import '../elements/panel-placeholder';
 
+import { Panel } from './panel';
 import {
   WINDOW_DEFAULT_DIMENSION,
   WINDOW_DEFAULT_GAP,
@@ -19,35 +19,6 @@ import {
   swapPosition,
 } from './utils';
 
-export type PannelContent = TemplateResult | string;
-
-export class Panel {
-  title: string;
-  content: PannelContent;
-  windowType?: string;
-
-  static defaultContent = html`<gem-panel-placeholder></gem-panel-placeholder>`;
-
-  static parse(obj: Panel) {
-    const { title, content = Panel.defaultContent, windowType } = obj;
-    return new Panel(
-      title,
-      typeof content === 'string' ? html([content] as any) : html(content.strings, ...content.values),
-      windowType,
-    );
-  }
-
-  constructor(title = 'No title', content: PannelContent = Panel.defaultContent, windowType?: string) {
-    this.title = title;
-    this.windowType = windowType;
-    this.loadContent(content);
-  }
-
-  loadContent(content: PannelContent) {
-    this.content = typeof content === 'string' ? html([content] as any) : content;
-  }
-}
-
 interface WindowOptional {
   type?: string;
   gridArea?: string;
@@ -63,22 +34,22 @@ export class Window implements WindowOptional {
   gridArea?: string;
   current: number;
   position?: [number, number];
-  zIndex: number;
+  zIndex: number; // No cache
   dimension?: [number, number];
-  panels: Panel[];
+  panels: string[];
 
   static parse({ gridArea, current = 0, panels = [], position, dimension, type }: Window) {
-    return new Window(panels.map(Panel.parse), { gridArea, current, position, dimension, type });
+    return new Window(panels, { gridArea, current, position, dimension, type });
   }
 
-  constructor(panels: Panel[] = [], optional: WindowOptional = {}) {
+  constructor(panels: (string | Panel)[] = [], optional: WindowOptional = {}) {
     const { gridArea = '', current = 0, position, dimension, zIndex = 1, type } = optional;
     this.id = randomStr();
     this.zIndex = zIndex + 10;
     this.current = current;
     this.gridArea = gridArea;
-    this.panels = panels;
-    this.type = type || panels[0]?.windowType;
+    this.type = type;
+    this.panels = [...new Set(panels.map((p) => (typeof p === 'string' ? p : p.name)))];
     if (position || dimension) {
       this.position = position || WINDOW_DEFAULT_POSITION;
       this.dimension = dimension || WINDOW_DEFAULT_DIMENSION;
@@ -93,7 +64,7 @@ export class Window implements WindowOptional {
     this.current = index;
   }
 
-  changePanelSort(p1: Panel, p2: Panel) {
+  changePanelSort(p1: string, p2: string) {
     const p1Index = this.panels.findIndex((e) => e === p1);
     const p2Index = this.panels.findIndex((e) => e === p2);
     [this.panels[p1Index], this.panels[p2Index]] = [p2, p1];
@@ -111,13 +82,13 @@ export class Window implements WindowOptional {
   }
 }
 
-interface ConfigOptional {
+interface LayoutOptional {
   gridTemplateAreas?: string;
   gridTemplateRows?: string;
   gridTemplateColumns?: string;
 }
 
-const defaultLayout: Required<ConfigOptional>[] = [
+const defaultLayout: Required<LayoutOptional>[] = [
   {
     gridTemplateAreas: `"a"`,
     gridTemplateRows: '1fr',
@@ -177,13 +148,11 @@ const defaultLayout: Required<ConfigOptional>[] = [
   },
 ];
 
-export class Config implements ConfigOptional {
+export class Layout implements LayoutOptional {
   gridTemplateAreas?: string;
   gridTemplateRows?: string;
   gridTemplateColumns?: string;
   windows: Window[];
-  // hidden
-  panels: Panel[];
 
   #areas: string[][]; // Optimization: Flip the object to modify it
   #rows: number[];
@@ -287,13 +256,13 @@ export class Config implements ConfigOptional {
     this.gridTemplateColumns = this.#stringifyGridTemplateAxis(this.#columns);
   };
 
-  #getNewGridArea = () => `a${randomStr()}${Config.id++}`;
+  #getNewGridArea = () => `a${randomStr()}${Layout.id++}`;
 
   static parse(str: string) {
-    const obj = JSON.parse(str) as Partial<Config> | null;
+    const obj = JSON.parse(str) as Partial<Layout> | null;
     if (!obj) return;
-    const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns, windows = [], panels = [] } = obj;
-    return new Config(windows.map(Window.parse), panels.map(Panel.parse), {
+    const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns, windows = [] } = obj;
+    return new Layout(windows.map(Window.parse), {
       gridTemplateAreas,
       gridTemplateRows,
       gridTemplateColumns,
@@ -301,7 +270,7 @@ export class Config implements ConfigOptional {
   }
   static id = 1;
 
-  constructor(allWindows: Window[] = [], panels: Panel[] = [], optional: ConfigOptional = {}) {
+  constructor(allWindows: Window[] = [], optional: LayoutOptional = {}) {
     const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns } = optional;
     const windows = allWindows.filter((w) => w.isGridWindow());
     const dl = defaultLayout[windows.length - 1] || defaultLayout[0];
@@ -319,15 +288,6 @@ export class Config implements ConfigOptional {
     });
 
     this.windows = allWindows;
-    this.panels = panels;
-  }
-
-  addHiddenPanel(panel: Panel) {
-    this.panels.push(panel);
-  }
-
-  deleteHiddenPanel(panel: Panel) {
-    removeItem(this.panels, panel);
   }
 
   moveWindow(window: Window, [x, y]: [number, number]) {
@@ -362,7 +322,6 @@ export class Config implements ConfigOptional {
       this.focusWindow(window);
     } else {
       removeItem(this.windows, window);
-      this.panels.push(...window.panels);
     }
     const areas = this.#findAreas(window);
     const { minRow, maxRow, minColumn, maxColumn, rows, columns } = this.#findAreasBoundary(areas);
@@ -405,7 +364,7 @@ export class Config implements ConfigOptional {
     [target.id, window.id] = [window.id, target.id];
     removeItem(this.windows, window);
     const targetLen = target.panels.length;
-    target.panels.push(...window.panels);
+    target.panels = [...new Set([...target.panels, ...window.panels])];
     target.changeCurrent(targetLen + window.current);
   }
 
@@ -460,40 +419,40 @@ export class Config implements ConfigOptional {
     this.#stringifyGridTemplate();
   }
 
-  createIndependentWindow(window: Window | null, panel: Panel, [x, y, w, h]: [number, number, number, number]) {
-    const newWindow = new Window([panel], { position: [x, y], dimension: [w, h] });
+  createIndependentWindow(window: Window | null, panelName: string, [x, y, w, h]: [number, number, number, number]) {
+    const newWindow = new Window([panelName], { position: [x, y], dimension: [w, h] });
     this.focusWindow(newWindow);
     this.windows.push(newWindow);
     if (window) {
-      if (panel === window.panels[window.current]) {
+      if (panelName === window.panels[window.current]) {
         // `repeat` 在 chrome 中不能复用元素，所以手动调整位置
         swapPosition(this.windows, window, newWindow);
         [newWindow.id, window.id] = [window.id, newWindow.id];
       }
-      this.closePanel(window, panel, true);
+      this.closePanel(window, panelName);
     }
     return newWindow;
   }
 
-  openHiddenPanel(panel: Panel) {
-    removeItem(this.panels, panel);
+  openHiddenPanel(panelName: string) {
     const getPosition = (position: [number, number]): [number, number] => {
       const window = this.windows.find((w) => w.position && isEqualArray(w.position, position));
       return window ? getPosition([position[0] + WINDOW_DEFAULT_GAP, position[1] + WINDOW_DEFAULT_GAP]) : position;
     };
-    this.createIndependentWindow(null, panel, [...getPosition(WINDOW_DEFAULT_POSITION), ...WINDOW_DEFAULT_DIMENSION]);
+    this.createIndependentWindow(null, panelName, [
+      ...getPosition(WINDOW_DEFAULT_POSITION),
+      ...WINDOW_DEFAULT_DIMENSION,
+    ]);
   }
 
-  openPanelInWindow(panel: Panel, window: Window) {
-    window.changeCurrent(window.panels.push(panel) - 1);
-    removeItem(this.panels, panel);
+  openPanelInWindow(window: Window, panelName: string) {
+    window.changeCurrent(window.panels.push(panelName) - 1);
   }
 
-  closePanel(window: Window, panel: Panel, isDelete = false) {
-    const panelIndex = window.panels.findIndex((e) => e === panel);
+  closePanel(window: Window, panelName: string) {
+    const panelIndex = window.panels.findIndex((e) => e === panelName);
     const closerIndex = getNewFocusElementIndex(window.panels, window.current, panelIndex);
     window.panels.splice(panelIndex, 1);
-    if (!isDelete) this.panels.push(panel);
     if (closerIndex >= 0) {
       window.changeCurrent(closerIndex);
     } else {

@@ -27,21 +27,18 @@ npm i gem-panel
 ## Example
 
 ```ts
-import { Config, Panel, Window } from 'gem-panel';
+import { Layout, Panel, Window } from 'gem-panel';
 import { render, html } from '@mantou/gem';
 
-const panel1 = new Panel('p1 title', html`p1 content`);
-const panel2 = new Panel('p2 title');
-const panel3 = new Panel('p3 title', html`<p3-panel></p3-panel>`);
-const panel4 = new Panel('p4 title', html`<p4-panel></p4-panel>`);
-const panel5 = new Panel('p5 title', html`<p5-panel></p5-panel>`);
-const panel6 = new Panel('p6 title', html`<p6-panel></p6-panel>`);
+const panel1 = new Panel('p1', { title: 'p1 title', content: html`p1 content` });
+const panel2 = new Panel('p2', { title: 'p2 title' });
+const panel3 = new Panel('p3', { title: 'p3 title', content: html`<p3-panel></p3-panel>` });
+const panel4 = new Panel('p4', { title: 'p4 title', content: html`<p4-panel></p4-panel>` });
+const panel5 = new Panel('p5', { title: 'p5 title', content: html`<p5-panel></p5-panel>` });
+const panel6 = new Panel('p6', { title: 'p6 title', content: html`<p6-panel></p6-panel>` });
 
-const window1 = new Window([panel1, panel4, panel5]);
-const window2 = new Window([panel2]);
-const window3 = new Window([panel6]);
-
-const config = new Config([window1, window2, window3], [panel3]);
+const panels = [panel1, panel2, panel3, panel4, panel5, panel6];
+const layout = new Layout([new Window([panel1, panel4, panel5]), new Window([panel2]), new Window([panel6])]);
 
 render(
   html`
@@ -57,12 +54,11 @@ render(
       }
     </style>
     <gem-panel
+      .panels=${panels}
+      .layout=${layout}
       .theme=${{ backgroundColor: 'red' }}
-      .config=${config}
-      .openPanelMenuBefore=${(panel, window) => []}
       cache
       cache-version="1"
-      @panel-change=${({ detail }) => {}}
     ></gem-panel>
   `,
   document.body,

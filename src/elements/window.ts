@@ -2,7 +2,8 @@ import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
-import { Panel, Window } from '../lib/config';
+import { Window } from '../lib/layout';
+import { GetPanelContent } from '../lib/panel';
 import {
   cancelHandleWindow,
   dropHandleWindow,
@@ -14,6 +15,7 @@ import {
   updateWindowType,
   updateWindowZIndex,
   independentPanel,
+  loadContentInPanel,
 } from '../lib/store';
 import { GemPanelTitleElement } from './panel-title';
 import { distance } from '../lib/utils';
@@ -26,15 +28,27 @@ import {
   WINDOW_TITLEBAR_HEIGHT,
 } from '../lib/const';
 
-import './panel-title';
 import './window-mask';
 import './window-handle';
+import './panel-title';
+import './panel-placeholder';
+
+const getContentWeakMap = new WeakMap<GetPanelContent, Promise<void>>();
+function execGetContent(fn: GetPanelContent | undefined, panelName: string) {
+  if (!fn) return;
+  if (!getContentWeakMap.has(fn)) {
+    getContentWeakMap.set(
+      fn,
+      fn(panelName).then((result) => loadContentInPanel(panelName, result)),
+    );
+  }
+}
 
 export const windowTagName = 'gem-panel-window';
 
 type State = {
   independentWindow: Window | null; // store?
-  panel: Panel | null;
+  panelName: string | null;
   move: boolean;
   offsetX: number;
   offsetY: number;
@@ -52,7 +66,7 @@ export class GemPanelWindowElement extends GemElement<State> {
 
   state: State = {
     independentWindow: null,
-    panel: null,
+    panelName: null,
     move: false,
     offsetX: 0,
     offsetY: 0,
@@ -63,14 +77,14 @@ export class GemPanelWindowElement extends GemElement<State> {
     scrollX: 0,
   };
 
-  #onMoveTitleStart = (panel: Panel, evt: PointerEvent) => {
+  #onMoveTitleStart = (panelName: string, evt: PointerEvent) => {
     evt.stopPropagation(); // prevent <gem-gesture>
     const target = evt.currentTarget as HTMLElement;
     target.setPointerCapture(evt.pointerId);
     const { x, y } = target.getBoundingClientRect();
     const parentRect = target.offsetParent?.getBoundingClientRect();
     this.setState({
-      panel,
+      panelName,
       offsetX: evt.clientX - x,
       offsetY: evt.clientY - y,
       parentOffsetX: parentRect?.x,
@@ -81,8 +95,8 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onMoveTitle = (evt: PointerEvent) => {
-    const { panel, move, offsetY, parentOffsetY, clientX, clientY } = this.state;
-    if (!panel) return;
+    const { panelName, move, offsetY, parentOffsetY, clientX, clientY } = this.state;
+    if (!panelName) return;
     // first move
     if (!move && distance(evt.clientX - clientX, evt.clientY - clientY) < ENTWE_PANEL_SORT_DISTANCE) return;
 
@@ -97,8 +111,8 @@ export class GemPanelWindowElement extends GemElement<State> {
         scrollX: target.offsetParent?.scrollLeft,
       });
       const ele = this.shadowRoot?.elementFromPoint(evt.clientX, parentOffsetY + offsetY);
-      if (ele instanceof GemPanelTitleElement && ele.panel !== panel) {
-        updatePanelSort(this, panel, ele.panel);
+      if (ele instanceof GemPanelTitleElement && ele.panelName !== panelName) {
+        updatePanelSort(this.window, panelName, ele.panelName);
       }
     }
   };
@@ -106,17 +120,17 @@ export class GemPanelWindowElement extends GemElement<State> {
   #onMoveTitleEnd = () => {
     // pointerup -> click
     setTimeout(() => {
-      this.setState({ panel: null, move: false });
+      this.setState({ panelName: null, move: false });
     });
   };
 
   #createIndependentWindow = (evt: PointerEvent) => {
-    const { panel, offsetX, offsetY } = this.state;
-    if (!panel) return;
+    const { panelName, offsetX, offsetY } = this.state;
+    if (!panelName) return;
     // Transfer event target
     this.setPointerCapture(evt.pointerId);
     const { width, height } = this.getBoundingClientRect();
-    const independentWindow = independentPanel(this, panel, [
+    const independentWindow = independentPanel(this.window, panelName, [
       evt.clientX - offsetX,
       evt.clientY - offsetY - WINDOW_TITLEBAR_HEIGHT,
       width,
@@ -124,7 +138,7 @@ export class GemPanelWindowElement extends GemElement<State> {
     ]);
     this.setState({
       independentWindow,
-      panel: null,
+      panelName: null,
       move: false,
       clientX: evt.clientX,
       clientY: evt.clientY,
@@ -137,7 +151,7 @@ export class GemPanelWindowElement extends GemElement<State> {
       clearTimeout(store.windowPanTimer);
       this.setState({ clientX: evt.clientX, clientY: evt.clientY });
       const [x, y] = [evt.clientX - clientX, evt.clientY - clientY];
-      updateWindowPosition({ window: independentWindow }, [x, y]);
+      updateWindowPosition(independentWindow, [x, y]);
       setWindowPanTimeout(this, independentWindow, [evt.clientX, evt.clientY]);
       if (distance(x, y) > CANCEL_WINDOW_DRAGOVER_DISTANCE) {
         cancelHandleWindow();
@@ -148,15 +162,15 @@ export class GemPanelWindowElement extends GemElement<State> {
   #onMoveEnd = () => {
     const { independentWindow } = this.state;
     if (independentWindow) {
-      dropHandleWindow({ window: independentWindow });
+      dropHandleWindow(independentWindow);
       this.setState({ independentWindow: null });
     }
   };
 
-  #onActivePanel = (panel: Panel) => {
+  #onActivePanel = (panelName: string) => {
     const { move, independentWindow } = this.state;
     if (!move && !independentWindow) {
-      updateCurrentPanel(this, panel);
+      updateCurrentPanel(this.window, panelName);
     }
   };
 
@@ -164,19 +178,19 @@ export class GemPanelWindowElement extends GemElement<State> {
     clearTimeout(store.windowPanTimer);
     if (this.window.isGridWindow()) {
       if (distance(detail.x, detail.y) > ENTWE_WINDOW_DRAGOVER_DISTANCE) {
-        updateWindowType(this, this.getBoundingClientRect());
+        updateWindowType(this.window, this.getBoundingClientRect());
       }
     } else {
       setWindowPanTimeout(this, this.window, [detail.clientX, detail.clientY]);
       if (distance(detail.x, detail.y) > CANCEL_WINDOW_DRAGOVER_DISTANCE) {
         cancelHandleWindow();
       }
-      updateWindowPosition(this, [detail.x, detail.y]);
+      updateWindowPosition(this.window, [detail.x, detail.y]);
     }
   };
 
   #onHeaderEnd = () => {
-    dropHandleWindow(this);
+    dropHandleWindow(this.window);
   };
 
   #onHeaderWheel = (evt: WheelEvent) => {
@@ -185,7 +199,7 @@ export class GemPanelWindowElement extends GemElement<State> {
   };
 
   #onFocusWindow = () => {
-    updateWindowZIndex(this);
+    updateWindowZIndex(this.window);
   };
 
   mounted = () => {
@@ -198,7 +212,10 @@ export class GemPanelWindowElement extends GemElement<State> {
   render = () => {
     const isGrid = this.window.isGridWindow();
     const { panels, gridArea, current = 0, position, dimension, zIndex } = this.window;
-    const { panel, move, offsetX, clientX, scrollX, parentOffsetX } = this.state;
+    const { panelName, move, offsetX, clientX, scrollX, parentOffsetX } = this.state;
+    const currentPanel = store.panels[panels[current]];
+    const content =
+      currentPanel && (currentPanel.content || execGetContent(currentPanel.getContent, currentPanel.name));
 
     return html`
       <style>
@@ -312,39 +329,39 @@ export class GemPanelWindowElement extends GemElement<State> {
                     part="panel-title ${index === current ? 'panel-active-title' : ''}"
                     exportparts="panel-button"
                     class=${`
-                    ${p === panel && move ? 'hidden' : ''}
+                    ${p === panelName && move ? 'hidden' : ''}
                     ${index === current ? 'active' : ''}
                     title
                   `}
                     .window=${this.window}
-                    .panel=${p}
+                    .panelName=${p}
                     @click=${() => this.#onActivePanel(p)}
                     @pointerdown=${(evt: PointerEvent) => this.#onMoveTitleStart(p, evt)}
                     @pointermove=${this.#onMoveTitle}
                     @pointerup=${this.#onMoveTitleEnd}
                     @pointercancel=${this.#onMoveTitleEnd}
                   >
-                    ${p.title}
                   </gem-panel-title>
                 `,
             )}
-            ${panel && move
+            ${panelName && move
               ? html`
                   <gem-panel-title
-                    part="panel-title panel-drag-title ${panels[current] === panel ? 'panel-active-title' : ''}"
+                    part="panel-title panel-drag-title ${panels[current] === panelName ? 'panel-active-title' : ''}"
                     exportparts="panel-button"
-                    class=${`title temp ${panels[current] === panel ? 'active' : ''}`}
+                    class=${`title temp ${panels[current] === panelName ? 'active' : ''}`}
                     .window=${this.window}
-                    .panel=${panel}
+                    .panelName=${panelName}
                   >
-                    ${panel.title}
                   </gem-panel-title>
                 `
               : ''}
           </gem-gesture>
         </div>
         <!-- Insert content here to style the window -->
-        <div part="panel-content" class="content">${panels[current].content}</div>
+        <div part="panel-content" class="content">
+          ${content || html`<gem-panel-placeholder></gem-panel-placeholder>`}
+        </div>
         ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
       </div>
       <gem-panel-handle .window=${this.window}></gem-panel-handle>

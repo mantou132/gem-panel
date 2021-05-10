@@ -1,5 +1,5 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
-import { Panel, Window } from '../lib/config';
+import { Window } from '../lib/layout';
 import { closePanel, closeWindow, store } from '../lib/store';
 import { openContextMenu } from './menu';
 
@@ -7,28 +7,28 @@ import { openContextMenu } from './menu';
 @connectStore(store)
 export class GemPanelTitleElement extends GemElement {
   window: Window;
-  panel: Panel;
+  panelName: string;
+
+  #defaultMenus = [
+    {
+      text: 'close panel',
+      handle: () => closePanel(this.window, this.panelName),
+    },
+    {
+      text: 'close panel group',
+      handle: () => closeWindow(this.window),
+    },
+  ];
 
   // https://bugs.chromium.org/p/chromium/issues/detail?id=1206640
   #pointerDownHandle = (evt: MouseEvent) => {
     evt.stopPropagation();
-    const { window, panel } = this;
-    const defaultMenus = [
-      {
-        text: 'close panel',
-        handle: () => closePanel({ window, panel }),
-      },
-      {
-        text: 'close panel group',
-        handle: () => closeWindow({ window }),
-      },
-    ];
-    setTimeout(() => {
+    const panel = store.panels[this.panelName];
+    if (!panel) return;
+    setTimeout(async () => {
       const activeElement = (this.getRootNode() as ShadowRoot)?.activeElement;
-      openContextMenu(activeElement as HTMLElement, evt.x, evt.y, [
-        ...(store.openPanelMenuBefore?.(panel, window) || []),
-        ...defaultMenus,
-      ]);
+      const menus = (await panel.getMenu?.(this.window, panel)) || [];
+      openContextMenu(activeElement as HTMLElement, evt.x, evt.y, [...menus, ...this.#defaultMenus]);
     });
   };
 
@@ -79,7 +79,7 @@ export class GemPanelTitleElement extends GemElement {
           width: 10em;
         }
       </style>
-      <slot></slot>
+      ${store.panels[this.panelName]?.title || 'No title'}
       <span part="panel-button" class="panel-button" @pointerdown=${this.#pointerDownHandle}></span>
     `;
   };

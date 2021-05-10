@@ -2,36 +2,30 @@
 
 ## Properties
 
-| Property              | Attribute       | Modifiers | Type                                       | Default |
-| --------------------- | --------------- | --------- | ------------------------------------------ | ------- |
-| `cache`               | `cache`         |           | `boolean`                                  | `false` |
-| `cacheVersion`        | `cache-version` |           | `string`                                   | `""`    |
-| `config`              |                 |           | `Config \| undefined`                      |         |
-| `theme`               |                 |           | `Theme \| undefined`                       |         |
-| `openPanelMenuBefore` |                 |           | `OpenPanelMenuBeforeCallback \| undefined` |         |
-| `activePanels`        |                 | readonly  | `Panel[]`                                  |         |
-| `hiddenPanels`        |                 | readonly  | `Panel[]`                                  |         |
-| `showPanels`          |                 | readonly  | `Panel[]`                                  |         |
+| Property       | Attribute       | Modifiers | Type                   | Default |
+| -------------- | --------------- | --------- | ---------------------- | ------- |
+| `cache`        | `cache`         |           | `boolean`              | `false` |
+| `cacheVersion` | `cache-version` |           | `string`               | `""`    |
+| `layout`       |                 |           | `Layout \| undefined`  |         |
+| `panels`       |                 |           | `Panel[] \| undefined` |         |
+| `theme`        |                 |           | `Theme \| undefined`   |         |
+| `showPanels`   |                 | readonly  | `Panel[]`              |         |
+| `activePanels` |                 | readonly  | `Panel[]`              |         |
+| `hiddenPanels` |                 | readonly  | `Panel[]`              |         |
 
 ## Methods
 
-| Method               | Type                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------- |
-| `clearCache`         | `(): void`                                                                            |
-| `closePanel`         | `(arg: string \| Panel): void`                                                        |
-| `addPanel`           | `(panel: Panel): void`                                                                |
-| `deletePanel`        | `(arg: string \| Panel): void`                                                        |
-| `loadContentInPanel` | `(arg: string \| Panel, content: PannelContent): void`                                |
-| `openHiddenPanel`    | `(arg: string \| Panel): void`                                                        |
-| `openPanelInWindow`  | `(arg: string \| Panel, window: Window): void`                                        |
-| `openContextMenu`    | `(activeElement: HTMLElement \| null, x: number, y: number, menus: MenuItem[]): void` |
-| `updateAllPanel`     | `(): void`                                                                            |
-
-## Events
-
-| Event          |
-| -------------- |
-| `panel-change` |
+| Method              | Type                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `openHiddenPanel`   | `(arg: string \| Panel): void`                                                        |
+| `openPanelInWindow` | `(arg: string \| Panel, window: Window): void`                                        |
+| `closePanel`        | `(arg: string \| Panel): void`                                                        |
+| `addPanel`          | `(panel: Panel): void`                                                                |
+| `deletePanel`       | `(arg: string \| Panel): void`                                                        |
+| `updateAllPanel`    | `(): void`                                                                            |
+| `clearCache`        | `(): void`                                                                            |
+| `clearPanel`        | `(): void`                                                                            |
+| `openContextMenu`   | `(activeElement: HTMLElement \| null, x: number, y: number, menus: MenuItem[]): void` |
 
 ## Parts
 
@@ -53,16 +47,9 @@
 
 ## Type
 
-### Config
+### Layout
 
 ```ts
-export declare type PannelContent = TemplateResult | string;
-export declare class Panel {
-  title: string;
-  content?: PannelContent;
-  windowType?: string;
-  constructor(title?: string, content?: PannelContent, windowType?: string);
-}
 interface WindowOptional {
   type?: string;
   gridArea?: string;
@@ -72,15 +59,32 @@ interface WindowOptional {
   dimension?: [number, number];
 }
 export declare class Window implements WindowOptional {
-  constructor(panels?: Panel[], optional?: WindowOptional);
+  constructor(panels?: (string | Panel)[], optional?: WindowOptional);
 }
-interface ConfigOptional {
+interface LayoutOptional {
   gridTemplateAreas?: string;
   gridTemplateRows?: string;
   gridTemplateColumns?: string;
 }
-export declare class Config implements ConfigOptional {
-  constructor(allWindows?: Window[], panels?: Panel[], optional?: ConfigOptional);
+export declare class Layout implements LayoutOptional {
+  constructor(allWindows?: Window[], optional?: LayoutOptional);
+}
+```
+
+### Panel
+
+```ts
+export declare type PanelContent = TemplateResult | HTMLElement | string;
+export declare type GetPanelContent = (panelName: string) => Promise<PanelContent>;
+interface PanelDetail {
+  title?: string;
+  content?: PanelContent;
+  getContent?: GetPanelContent;
+  windowType?: string;
+  getMenus?: (window: Window, panel: Panel) => Promise<MenuItem[]>;
+}
+export declare class Panel {
+  constructor(name: string, detail: PanelDetail);
 }
 ```
 
@@ -106,14 +110,6 @@ export declare type Theme = Partial<typeof theme>;
 
 ```ts
 export declare class GemPanelElement extends GemElement {
-  constructor(
-    config: Config,
-    optionnal?: {
-      theme?: Theme;
-      cache?: boolean;
-      cacheVersion?: string;
-      openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
-    },
-  );
+  constructor(args?: { layout?: Layout; panels?: Panel[]; theme?: Theme; cache?: boolean; cacheVersion?: string });
 }
 ```

@@ -1,4 +1,5 @@
-export { GemPanelElement, PanelChangeDetail } from './elements/root';
+export { GemPanelElement } from './elements/root';
 export { MenuItem } from './elements/menu';
-export { Panel, Window, Config } from './lib/config';
+export { Window, Layout } from './lib/layout';
+export { Panel } from './lib/panel';
 export { Theme, theme } from './lib/theme';

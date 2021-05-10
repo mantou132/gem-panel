@@ -1,25 +1,24 @@
 import { createStore, updateStore } from '@mantou/gem';
 import { DROP_DETECTION_DELAY, WINDOW_HOVER_DETECT_BORDER, WINDOW_HOVER_DETECT_HEADER_HEIGHT } from './const';
-import { Config, Panel, PannelContent, Window } from './config';
+import { Layout, Window } from './layout';
+import { Panel, PanelContent } from './panel';
 import { detectPosition } from './utils';
 import { GemPanelWindowElement } from '../elements/window';
 import { HoverWindowPosition } from '../elements/window-mask';
 import { MoveSideArgs, Side } from '../elements/window-handle';
-import { OpenPanelMenuBeforeCallback } from '../elements/root';
 
 type AppState = {
-  config: Config;
-  openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
+  layout: Layout;
+  panels: { [name: string]: Panel };
   windowPanTimer: number;
   hoverWindow: null | Window;
   panWindow: null | Window;
   hoverWindowPosition: HoverWindowPosition;
 };
-type WindowConfig = { window: Window };
-type PanelConfig = WindowConfig & { panel: Panel };
 
 export const store = createStore<AppState>({
-  config: new Config(),
+  layout: new Layout(),
+  panels: {},
   windowPanTimer: 0,
   hoverWindow: null,
   hoverWindowPosition: 'center',
@@ -31,30 +30,38 @@ export function updateAppState(state: Partial<AppState>) {
 }
 
 export function addHiddenPanel(panel: Panel) {
-  store.config.addHiddenPanel(panel);
+  store.panels[panel.name] = panel;
 }
 
-export function deleteHiddenPanel(panel: Panel) {
-  store.config.deleteHiddenPanel(panel);
+export function deleteHiddenPanel(panelName: string) {
+  delete store.panels[panelName];
 }
 
-export function openHiddenPanel(panel: Panel) {
-  store.config.openHiddenPanel(panel);
+export function deletePanelFromWindow(window: Window, panelName: string) {
+  store.layout.closePanel(window, panelName);
+  deleteHiddenPanel(panelName);
   updateStore(store);
 }
 
-export function openPanelInWindow(panel: Panel, window: Window) {
-  store.config.openPanelInWindow(panel, window);
+export function openHiddenPanel(panelName: string) {
+  store.layout.openHiddenPanel(panelName);
   updateStore(store);
 }
 
-export function loadContentInPanel(panel: Panel, content: PannelContent) {
-  panel.loadContent(content);
+export function openPanelInWindow(window: Window, panelName: string) {
+  store.layout.openPanelInWindow(window, panelName);
   updateStore(store);
 }
 
-export function independentPanel({ window }: WindowConfig, panel: Panel, rect: [number, number, number, number]) {
-  const newWindow = store.config.createIndependentWindow(window, panel, rect);
+export function loadContentInPanel(panelName: string, content: PanelContent) {
+  const panel = store.panels[panelName];
+  if (!panel) return;
+  panel.detail.content = content;
+  updateStore(store);
+}
+
+export function independentPanel(window: Window, panelName: string, rect: [number, number, number, number]) {
+  const newWindow = store.layout.createIndependentWindow(window, panelName, rect);
   updateStore(store);
   return newWindow;
 }
@@ -113,65 +120,60 @@ export function cancelHandleWindow() {
   updateStore(store, { hoverWindow: null, panWindow: null });
 }
 
-export function dropHandleWindow({ window }: WindowConfig) {
+export function dropHandleWindow(window: Window) {
   clearTimeout(store.windowPanTimer);
   if (store.hoverWindow) {
-    store.config.focusWindow(store.hoverWindow);
+    store.layout.focusWindow(store.hoverWindow);
     if (store.hoverWindowPosition === 'center' || store.hoverWindowPosition === 'header') {
-      store.config.mergeWindow(window, store.hoverWindow);
+      store.layout.mergeWindow(window, store.hoverWindow);
     } else {
-      store.config.createGridWindow(window, store.hoverWindow, store.hoverWindowPosition);
+      store.layout.createGridWindow(window, store.hoverWindow, store.hoverWindowPosition);
     }
     cancelHandleWindow();
   }
 }
 
-export function updateCurrentPanel({ window }: WindowConfig, panel: Panel) {
-  window.changeCurrent(window.panels.findIndex((p) => p === panel));
+export function updateCurrentPanel(window: Window, panelName: string) {
+  window.changeCurrent(window.panels.findIndex((p) => p === panelName));
   updateStore(store);
 }
 
-export function updatePanelSort({ window }: WindowConfig, p1: Panel, p2: Panel) {
+export function updatePanelSort(window: Window, p1: string, p2: string) {
   window.changePanelSort(p1, p2);
   updateStore(store);
 }
 
-export function updateWindowPosition({ window }: WindowConfig, movement: [number, number]) {
-  store.config.moveWindow(window, movement);
+export function updateWindowPosition(window: Window, movement: [number, number]) {
+  store.layout.moveWindow(window, movement);
   updateStore(store);
 }
 
-export function updateWindowRect({ window }: WindowConfig, movement: [number, number, number, number]) {
-  store.config.changeWindowRect(window, movement);
+export function updateWindowRect(window: Window, movement: [number, number, number, number]) {
+  store.layout.changeWindowRect(window, movement);
   updateStore(store);
 }
 
-export function updateWindowZIndex({ window }: WindowConfig) {
-  store.config.focusWindow(window);
+export function updateWindowZIndex(window: Window) {
+  store.layout.focusWindow(window);
   updateStore(store);
 }
 
-export function updateWindowType({ window }: WindowConfig, { x, y, width, height }: DOMRect) {
-  store.config.removeWindow(window, [x, y, width, height]);
+export function updateWindowType(window: Window, { x, y, width, height }: DOMRect) {
+  store.layout.removeWindow(window, [x, y, width, height]);
   updateStore(store);
 }
 
-export function deletePanelFromWindow({ window, panel }: PanelConfig) {
-  store.config.closePanel(window, panel, true);
+export function closePanel(window: Window, panelName: string) {
+  store.layout.closePanel(window, panelName);
   updateStore(store);
 }
 
-export function closePanel({ window, panel }: PanelConfig) {
-  store.config.closePanel(window, panel);
+export function closeWindow(window: Window) {
+  store.layout.removeWindow(window);
   updateStore(store);
 }
 
-export function closeWindow({ window }: WindowConfig) {
-  store.config.removeWindow(window);
-  updateStore(store);
-}
-
-export function moveSide({ window }: WindowConfig, side: Side, args: MoveSideArgs) {
-  store.config.moveSide(window, side, args);
+export function moveSide(window: Window, side: Side, args: MoveSideArgs) {
+  store.layout.moveSide(window, side, args);
   updateStore(store);
 }

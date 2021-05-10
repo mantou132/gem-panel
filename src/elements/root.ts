@@ -1,21 +1,10 @@
-import {
-  html,
-  GemElement,
-  customElement,
-  property,
-  connectStore,
-  boolattribute,
-  attribute,
-  emitter,
-  Emitter,
-  repeat,
-} from '@mantou/gem';
+import { html, GemElement, customElement, property, connectStore, boolattribute, attribute, repeat } from '@mantou/gem';
 import { updateTheme } from '@mantou/gem/helper/theme';
-import { Config, Panel, Window, PannelContent } from '../lib/config';
+import { Layout, Window } from '../lib/layout';
+import { Panel } from '../lib/panel';
 import {
   closePanel,
   closeWindow,
-  loadContentInPanel,
   openHiddenPanel,
   openPanelInWindow,
   addHiddenPanel,
@@ -25,68 +14,53 @@ import {
   deleteHiddenPanel,
 } from '../lib/store';
 import { theme, Theme } from '../lib/theme';
-import { isOutside } from '../lib/utils';
+import { isOutside, keyBy, exclude } from '../lib/utils';
 import { MenuItem, openContextMenu } from './menu';
 import { GemPanelWindowElement, windowTagName } from './window';
 import './menu';
 
-export type PanelChangeDetail = { showPanels: Panel[]; hiddenPanels: Panel[]; activePanels: Panel[] };
-export type OpenPanelMenuBeforeCallback = (panel: Panel, window: Window) => MenuItem[];
-
 @customElement('gem-panel')
 @connectStore(store)
 export class GemPanelElement extends GemElement {
-  @property openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
-  @property config?: Config;
+  @property layout?: Layout;
+  @property panels?: Panel[];
   @property theme?: Theme;
   @boolattribute cache: boolean;
   @attribute cacheVersion: string;
-  @emitter panelChange: Emitter<PanelChangeDetail>;
 
-  constructor(
-    config: Config,
-    optionnal?: {
-      theme?: Theme;
-      cache?: boolean;
-      cacheVersion?: string;
-      openPanelMenuBefore?: OpenPanelMenuBeforeCallback;
-    },
-  ) {
+  constructor(args?: { layout?: Layout; panels?: Panel[]; theme?: Theme; cache?: boolean; cacheVersion?: string }) {
     super();
-    this.config = config;
-    Object.assign(this, optionnal);
+    Object.assign(this, args);
   }
 
   #getKey = (cacheVersion = this.cacheVersion) => {
     // Modify when it is not compatible
-    const v = 1;
+    const v = 2;
     return `${this.tagName}-${v}-${cacheVersion}`;
   };
 
   #loadCache = () => {
     if (this.cache) {
-      const config = Config.parse(localStorage.getItem(this.#getKey()) || 'null');
-      if (config) {
-        updateAppState({ config });
-      }
+      const layout = Layout.parse(localStorage.getItem(this.#getKey()) || 'null');
+      if (layout) updateAppState({ layout });
     }
   };
 
   #cacheAs = (cacheVersion = this.cacheVersion) => {
     if (this.cache) {
-      localStorage.setItem(this.#getKey(cacheVersion), JSON.stringify(store.config));
+      localStorage.setItem(this.#getKey(cacheVersion), JSON.stringify(store.layout));
     }
   };
 
   #save = () => this.#cacheAs();
 
   #queryPanel = (arg: string | Panel, panels: Panel[]) => {
-    const title = typeof arg === 'string' ? arg : arg.title;
-    return panels.find((e) => e.title === title);
+    const title = typeof arg === 'string' ? arg : arg.name;
+    return panels.find((e) => e.name === title);
   };
 
   #queryWindow = (panel: Panel) => {
-    return this.windows.find((w) => w.panels.includes(panel));
+    return store.layout.windows.find((w) => w.panels.includes(panel.name));
   };
 
   #cleanOutsideWindow = () => {
@@ -95,7 +69,7 @@ export class GemPanelElement extends GemElement {
       if (ele.window.isGridWindow()) return;
       const targetRect = ele.getBoundingClientRect();
       if (isOutside(rect, targetRect)) {
-        closeWindow(ele);
+        closeWindow(ele.window);
       }
     });
   };
@@ -108,21 +82,17 @@ export class GemPanelElement extends GemElement {
   mounted = () => {
     this.#onResize();
     this.effect(
-      () => updateAppState({ config: this.config, openPanelMenuBefore: this.openPanelMenuBefore }),
-      () => [this.config, this.openPanelMenuBefore],
+      () => {
+        updateAppState({
+          layout: this.layout,
+          panels: keyBy(this.panels || [], 'name'),
+        });
+      },
+      () => [this.layout, this.panels],
     );
     this.effect(
       () => updateTheme(theme, this.theme || {}),
       () => [this.theme],
-    );
-    this.effect(
-      () =>
-        this.panelChange({
-          showPanels: this.showPanels,
-          hiddenPanels: this.hiddenPanels,
-          activePanels: this.activePanels,
-        }),
-      () => this.showPanels.map(({ title }) => title),
     );
     this.effect(
       (_, old) => {
@@ -141,7 +111,7 @@ export class GemPanelElement extends GemElement {
   };
 
   render = () => {
-    const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns, windows } = store.config;
+    const { gridTemplateAreas, gridTemplateRows, gridTemplateColumns, windows } = store.layout;
     return html`
       <style>
         :host {
@@ -192,38 +162,31 @@ export class GemPanelElement extends GemElement {
     `;
   };
 
-  get hiddenPanels() {
-    return [...store.config.panels];
-  }
-
   get showPanels() {
-    return store.config.windows.map((w) => w.panels).flat();
+    return store.layout.windows
+      .map((w) => w.panels)
+      .flat()
+      .map((p) => store.panels[p]);
   }
 
   get activePanels() {
-    return store.config.windows.map((w) => w.panels[w.current]);
+    return store.layout.windows.map((w) => w.panels[w.current]).map((p) => store.panels[p]);
   }
 
-  get windows() {
-    return [...store.config.windows];
+  get hiddenPanels() {
+    return Object.values(exclude({ ...store.panels }, 'name', this.showPanels));
   }
 
   openHiddenPanel(arg: string | Panel) {
     const panel = this.#queryPanel(arg, this.hiddenPanels);
     if (!panel) return;
-    openHiddenPanel(panel);
+    openHiddenPanel(panel.name);
   }
 
   openPanelInWindow(arg: string | Panel, window: Window) {
     const panel = this.#queryPanel(arg, this.hiddenPanels);
     if (!panel) return;
-    openPanelInWindow(panel, window);
-  }
-
-  loadContentInPanel(arg: string | Panel, content: PannelContent) {
-    const panel = this.#queryPanel(arg, this.showPanels);
-    if (!panel) return;
-    loadContentInPanel(panel, content);
+    openPanelInWindow(window, panel.name);
   }
 
   closePanel(arg: string | Panel) {
@@ -231,7 +194,7 @@ export class GemPanelElement extends GemElement {
     if (!panel) return;
     const window = this.#queryWindow(panel);
     if (!window) return;
-    closePanel({ window, panel });
+    closePanel(window, panel.name);
   }
 
   addPanel(panel: Panel) {
@@ -243,12 +206,20 @@ export class GemPanelElement extends GemElement {
     if (panel) {
       const window = this.#queryWindow(panel);
       if (!window) return;
-      deletePanelFromWindow({ window, panel });
+      deletePanelFromWindow(window, panel.name);
     } else {
       const hiddenPanel = this.#queryPanel(arg, this.hiddenPanels);
       if (!hiddenPanel) return;
-      deleteHiddenPanel(hiddenPanel);
+      deleteHiddenPanel(hiddenPanel.name);
     }
+  }
+
+  clearPanel() {
+    store.layout.windows.forEach((window) =>
+      window.panels.forEach((panelName) => {
+        if (!store.panels[panelName]) deletePanelFromWindow(window, panelName);
+      }),
+    );
   }
 
   updateAllPanel() {

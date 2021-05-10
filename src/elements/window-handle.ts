@@ -4,7 +4,7 @@ import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
 import { moveSide, updateWindowRect } from '../lib/store';
-import { Window } from '../lib/config';
+import { Window } from '../lib/layout';
 import { store } from '../lib/store';
 import { theme } from '../lib/theme';
 
@@ -30,7 +30,7 @@ export class GemPanelHandleElement extends GemElement {
       } else {
         console.info('Cause the moving axis to shake!');
       }
-      moveSide({ window: this.window }, side, { width, height, gap, movementX: detail.x, movementY: detail.y });
+      moveSide(this.window, side, { width, height, gap, movementX: detail.x, movementY: detail.y });
     } else {
       const movement = {
         x: 0,
@@ -52,7 +52,7 @@ export class GemPanelHandleElement extends GemElement {
         movement.x = detail.x;
         movement.w = -detail.x;
       }
-      updateWindowRect({ window: this.window }, [movement.x, movement.y, movement.w, movement.h]);
+      updateWindowRect(this.window, [movement.x, movement.y, movement.w, movement.h]);
     }
   };
 
@@ -83,7 +83,7 @@ export class GemPanelHandleElement extends GemElement {
       movement.w = -x;
       movement.h = y;
     }
-    updateWindowRect({ window: this.window }, [movement.x, movement.y, movement.w, movement.h]);
+    updateWindowRect(this.window, [movement.x, movement.y, movement.w, movement.h]);
   };
 
   render = () => {
