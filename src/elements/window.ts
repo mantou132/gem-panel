@@ -207,15 +207,24 @@ export class GemPanelWindowElement extends GemElement<State> {
     this.addEventListener('pointermove', this.#onMove);
     this.addEventListener('pointerup', this.#onMoveEnd);
     this.addEventListener('pointercancel', this.#onMoveEnd);
+    this.effect(
+      ([currentPanel]) => {
+        if (currentPanel && !currentPanel.content) {
+          execGetContent(currentPanel.getContent, currentPanel.name);
+        }
+      },
+      () => {
+        const { panels, current } = this.window;
+        return [store.panels[panels[current]]];
+      },
+    );
   };
 
   render = () => {
     const isGrid = this.window.isGridWindow();
-    const { panels, gridArea, current = 0, position, dimension, zIndex } = this.window;
+    const { panels, gridArea, current, position, dimension, zIndex } = this.window;
     const { panelName, move, offsetX, clientX, scrollX, parentOffsetX } = this.state;
     const currentPanel = store.panels[panels[current]];
-    const content =
-      currentPanel && (currentPanel.content || execGetContent(currentPanel.getContent, currentPanel.name));
 
     return html`
       <style>
@@ -234,6 +243,7 @@ export class GemPanelWindowElement extends GemElement<State> {
           z-index: ${isGrid ? 1 : zIndex};
         }
         .window {
+          width: 0;
           flex-grow: 1;
           overflow: hidden;
           display: flex;
@@ -360,7 +370,7 @@ export class GemPanelWindowElement extends GemElement<State> {
         </div>
         <!-- Insert content here to style the window -->
         <div part="panel-content" class="content">
-          ${content || html`<gem-panel-placeholder></gem-panel-placeholder>`}
+          ${currentPanel?.content || currentPanel?.placeholder || html`<gem-panel-placeholder></gem-panel-placeholder>`}
         </div>
         ${store.hoverWindow === this.window ? html`<gem-panel-mask></gem-panel-mask>` : ''}
       </div>

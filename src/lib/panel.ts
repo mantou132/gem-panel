@@ -8,6 +8,7 @@ export type GetPanelContent = (panelName: string) => Promise<PanelContent>;
 interface PanelDetail {
   title?: string;
   content?: PanelContent;
+  placeholder?: PanelContent;
   windowType?: string;
   getContent?: GetPanelContent;
   getMenu?: (window: Window, panel: Panel) => Promise<MenuItem[]>;
@@ -22,6 +23,10 @@ export class Panel {
 
   get content() {
     return this.detail.content;
+  }
+
+  get placeholder() {
+    return this.detail.placeholder;
   }
 
   get windowType() {
