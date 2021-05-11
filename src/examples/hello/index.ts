@@ -2,12 +2,12 @@ import { render, html } from '@mantou/gem';
 
 import { MenuItem, GemPanelElement, Layout, Panel, Window } from '../../';
 
-const getMenu = async (window: Window) => {
-  const menus: MenuItem[] = [];
+const getMenu = async (window: Window, _panel: Panel, defaultMenus: MenuItem[]) => {
+  const menus: MenuItem[] = [...defaultMenus];
   const gemPanelEle = document.querySelector<GemPanelElement>('gem-panel');
   if (gemPanelEle) {
     gemPanelEle.hiddenPanels.forEach((panel) => {
-      menus.push({
+      menus.unshift({
         text: `open "${panel.title}"`,
         handle: () => gemPanelEle.openPanelInWindow(panel, window),
       });

@@ -11,7 +11,7 @@ interface PanelDetail {
   placeholder?: PanelContent;
   windowType?: string;
   getContent?: GetPanelContent;
-  getMenu?: (window: Window, panel: Panel) => Promise<MenuItem[]>;
+  getMenu?: (window: Window, panel: Panel, defaultMenus: MenuItem[]) => Promise<MenuItem[]>;
 }
 export class Panel {
   name: string;
