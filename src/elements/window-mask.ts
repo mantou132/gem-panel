@@ -12,6 +12,7 @@ export type HoverWindowPosition = typeof sides[number] | 'center' | 'header';
 export class GemPanelMaskElement extends GemElement {
   render = () => {
     const position = store.hoverWindowPosition;
+    const headerHeight = store.hoverWindow?.engross ? 0 : WINDOW_HOVER_DETECT_HEADER_HEIGHT;
 
     return html`
       <style>
@@ -33,7 +34,7 @@ export class GemPanelMaskElement extends GemElement {
         .header {
           background: ${theme.focusColor};
           opacity: 0.1;
-          height: ${WINDOW_HOVER_DETECT_HEADER_HEIGHT}px;
+          height: ${headerHeight}px;
           bottom: auto;
         }
         .center {
@@ -41,7 +42,7 @@ export class GemPanelMaskElement extends GemElement {
           opacity: 0.2;
         }
         .side {
-          top: ${WINDOW_HOVER_DETECT_HEADER_HEIGHT}px;
+          top: ${headerHeight}px;
           border: ${WINDOW_HOVER_DETECT_BORDER}px solid transparent;
           opacity: 0.1;
         }

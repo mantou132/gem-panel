@@ -77,34 +77,41 @@ export function setWindowPanTimeout(
   [clientX, clientY]: [number, number],
 ) {
   const detectHoverWindow = () => {
-    const rootShadowDom = (ele.getRootNode() as unknown) as ShadowRoot;
-    const windowEles = rootShadowDom
+    const gemPanelShadowRoot = (ele.getRootNode() as unknown) as ShadowRoot;
+    const windowEles = gemPanelShadowRoot
       .elementsFromPoint(clientX, clientY)
       .filter((e) => 'window' in e) as GemPanelWindowElement[];
     const currentWindowEle = windowEles.find((e) => e.window === currentPanWindow);
     const hoverWindowEle = windowEles.find((e) => e !== currentWindowEle && e.window !== currentWindowEle?.window);
     if (hoverWindowEle) {
       const { x, y, width, height } = hoverWindowEle.getBoundingClientRect();
+      const headerHeight = hoverWindowEle.window.engross ? 0 : WINDOW_HOVER_DETECT_HEADER_HEIGHT;
       const isCenterPostion =
         !hoverWindowEle.window.isGridWindow() ||
         width < 4 * WINDOW_HOVER_DETECT_BORDER ||
-        height < 3 * WINDOW_HOVER_DETECT_BORDER + 2 * WINDOW_HOVER_DETECT_HEADER_HEIGHT;
-      const isHeader = clientY > y && clientY < y + WINDOW_HOVER_DETECT_HEADER_HEIGHT;
+        height < 3 * WINDOW_HOVER_DETECT_BORDER + 2 * headerHeight;
+      const isHeader = clientY > y && clientY < y + headerHeight;
       const hoverWindowPosition = isCenterPostion
         ? 'center'
         : isHeader
         ? 'header'
         : detectPosition(
-            [x, y + WINDOW_HOVER_DETECT_HEADER_HEIGHT, width, height - WINDOW_HOVER_DETECT_HEADER_HEIGHT],
+            [x, y + headerHeight, width, height - headerHeight],
             [clientX, clientY],
             WINDOW_HOVER_DETECT_BORDER,
           );
 
-      updateStore(store, {
-        hoverWindow: hoverWindowEle.window,
-        panWindow: currentPanWindow,
-        hoverWindowPosition,
-      });
+      if ((hoverWindowPosition === 'center' || hoverWindowPosition === 'header') && hoverWindowEle.window.engross) {
+        cancelHandleWindow();
+      } else {
+        updateStore(store, {
+          hoverWindow: hoverWindowEle.window,
+          panWindow: currentPanWindow,
+          hoverWindowPosition,
+        });
+      }
+    } else {
+      cancelHandleWindow();
     }
   };
   if (store.hoverWindow) {

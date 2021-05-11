@@ -223,7 +223,7 @@ export class GemPanelWindowElement extends GemElement<State> {
 
   render = () => {
     const isGrid = this.window.isGridWindow();
-    const { panels, gridArea, current, position, dimension, zIndex } = this.window;
+    const { panels, gridArea, current, position, dimension, zIndex, engross } = this.window;
     const { panelName, move, offsetX, clientX, scrollX, parentOffsetX } = this.state;
     const currentPanel = store.panels[panels[current]];
 
@@ -231,7 +231,7 @@ export class GemPanelWindowElement extends GemElement<State> {
       <style>
         :host {
           display: flex;
-          position: ${isGrid ? 'relative' : 'absolute'};
+          position: ${isGrid ? 'relative' : 'fixed'};
           left: ${position?.[0]}px;
           top: ${position?.[1]}px;
           width: ${dimension?.[0]}px;
@@ -313,12 +313,18 @@ export class GemPanelWindowElement extends GemElement<State> {
         :is(.window, .content):is(:focus, :focus-visible) {
           outline: none;
         }
+        :where(.engross) .header-wrap {
+          display: none;
+        }
+        :where(.engross) .content {
+          padding: 0;
+        }
       </style>
       <div
         ref=${this.windowRef.ref}
         part="window ${isGrid ? 'cell-window' : 'fixed-window'}"
         tabindex="0"
-        class="window"
+        class="${`window ${engross ? 'engross' : ''}`}"
       >
         ${isGrid
           ? ''

@@ -20,6 +20,7 @@ import {
 } from './utils';
 
 interface WindowOptional {
+  engross?: boolean;
   gridArea?: string;
   current?: number;
   position?: [number, number];
@@ -29,6 +30,7 @@ interface WindowOptional {
 
 export class Window implements WindowOptional {
   id: string;
+  engross?: boolean;
   gridArea?: string;
   current: number;
   position?: [number, number];
@@ -36,16 +38,18 @@ export class Window implements WindowOptional {
   dimension?: [number, number];
   panels: string[];
 
-  static parse({ gridArea, current = 0, panels = [], position, dimension }: Window) {
-    return new Window(panels, { gridArea, current, position, dimension });
+  static parse({ gridArea, current = 0, panels = [], position, dimension, engross }: Window) {
+    return new Window(panels, { gridArea, current, position, dimension, engross });
   }
 
   constructor(panels: (string | Panel)[] = [], optional: WindowOptional = {}) {
-    const { gridArea = '', current = 0, position, dimension, zIndex = 1 } = optional;
+    const { gridArea = '', current = 0, position, dimension, zIndex = 1, engross } = optional;
     this.id = randomStr();
     this.zIndex = zIndex + 10;
     this.current = current;
     this.gridArea = gridArea;
+    this.engross = engross;
+    if (engross && panels.length > 1) throw new Error('Engross window only allows a panel');
     this.panels = [...new Set(panels.map((p) => (typeof p === 'string' ? p : p.name)))];
     if (position || dimension) {
       this.position = position || WINDOW_DEFAULT_POSITION;
@@ -459,12 +463,14 @@ export class Layout implements LayoutOptional {
       }
       return;
     } else {
+      if (window.engross) return;
       window.changeCurrent(window.panels.push(panelName) - 1);
       this.focusWindow(window);
     }
   }
 
   closePanel(window: Window, panelName: string) {
+    if (window.engross) return;
     const panelIndex = window.panels.findIndex((e) => e === panelName);
     const closerIndex = getNewFocusElementIndex(window.panels, window.current, panelIndex);
     window.panels.splice(panelIndex, 1);
