@@ -123,7 +123,6 @@ export function cancelHandleWindow() {
 export function dropHandleWindow(window: Window) {
   clearTimeout(store.windowPanTimer);
   if (store.hoverWindow) {
-    store.layout.focusWindow(store.hoverWindow);
     if (store.hoverWindowPosition === 'center' || store.hoverWindowPosition === 'header') {
       store.layout.mergeWindow(window, store.hoverWindow);
     } else {

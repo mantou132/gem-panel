@@ -366,6 +366,7 @@ export class Layout implements LayoutOptional {
     const targetLen = target.panels.length;
     target.panels = [...new Set([...target.panels, ...window.panels])];
     target.changeCurrent(targetLen + window.current);
+    this.focusWindow(target);
   }
 
   createGridWindow(window: Window, hoverWindow: Window, side: Side) {
@@ -439,14 +440,16 @@ export class Layout implements LayoutOptional {
       const window = this.windows.find((w) => w.position && isEqualArray(w.position, position));
       return window ? getPosition([position[0] + WINDOW_DEFAULT_GAP, position[1] + WINDOW_DEFAULT_GAP]) : position;
     };
-    this.createIndependentWindow(null, panelName, [
+    const newWindow = this.createIndependentWindow(null, panelName, [
       ...getPosition(WINDOW_DEFAULT_POSITION),
       ...WINDOW_DEFAULT_DIMENSION,
     ]);
+    this.focusWindow(newWindow);
   }
 
   openPanelInWindow(window: Window, panelName: string) {
     window.changeCurrent(window.panels.push(panelName) - 1);
+    this.focusWindow(window);
   }
 
   closePanel(window: Window, panelName: string) {
