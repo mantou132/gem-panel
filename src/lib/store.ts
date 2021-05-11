@@ -95,18 +95,11 @@ export function setWindowPanTimeout(
             WINDOW_HOVER_DETECT_BORDER,
           );
 
-      if (
-        (hoverWindowPosition === 'center' || hoverWindowPosition === 'header') &&
-        hoverWindowEle.window.type !== currentPanWindow.type
-      ) {
-        cancelHandleWindow();
-      } else {
-        updateStore(store, {
-          hoverWindow: hoverWindowEle.window,
-          panWindow: currentPanWindow,
-          hoverWindowPosition,
-        });
-      }
+      updateStore(store, {
+        hoverWindow: hoverWindowEle.window,
+        panWindow: currentPanWindow,
+        hoverWindowPosition,
+      });
     }
   };
   if (store.hoverWindow) {

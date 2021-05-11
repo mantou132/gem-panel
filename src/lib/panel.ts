@@ -9,7 +9,6 @@ interface PanelDetail {
   title?: string;
   content?: PanelContent;
   placeholder?: PanelContent;
-  windowType?: string;
   getContent?: GetPanelContent;
   getMenu?: (window: Window, panel: Panel, defaultMenus: MenuItem[]) => Promise<MenuItem[]>;
 }
@@ -27,10 +26,6 @@ export class Panel {
 
   get placeholder() {
     return this.detail.placeholder;
-  }
-
-  get windowType() {
-    return this.detail.windowType;
   }
 
   get getContent() {

@@ -51,7 +51,6 @@
 
 ```ts
 interface WindowOptional {
-  type?: string;
   gridArea?: string;
   current?: number;
   position?: [number, number];
@@ -81,7 +80,6 @@ interface PanelDetail {
   content?: PanelContent;
   placeholder?: PanelContent;
   getContent?: GetPanelContent;
-  windowType?: string;
   getMenus?: (window: Window, panel: Panel) => Promise<MenuItem[]>;
 }
 export declare class Panel {
