@@ -48,8 +48,13 @@ export function openHiddenPanel(panelName: string) {
   updateStore(store);
 }
 
-export function openPanelInWindow(window: Window, panelName: string) {
-  store.layout.openPanelInWindow(window, panelName);
+export function activePanel(window: Window, panelName: string) {
+  store.layout.activePanel(window, panelName);
+  updateStore(store);
+}
+
+export function openPanelInWindow(window: Window, panelName: string, side?: Side) {
+  store.layout.openPanelInWindow(window, panelName, side);
   updateStore(store);
 }
 
@@ -119,7 +124,7 @@ export function dropHandleWindow(window: Window) {
     if (store.hoverWindowPosition === 'center' || store.hoverWindowPosition === 'header') {
       store.layout.mergeWindow(window, store.hoverWindow);
     } else {
-      store.layout.createGridWindow(window, store.hoverWindow, store.hoverWindowPosition);
+      store.layout.convertGridWindow(window, store.hoverWindow, store.hoverWindowPosition);
     }
     cancelHandleWindow();
   }

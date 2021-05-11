@@ -1,4 +1,4 @@
-import { html, GemElement, customElement, connectStore } from '@mantou/gem';
+import { html, GemElement, customElement, connectStore, refobject, RefObject } from '@mantou/gem';
 import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
@@ -62,6 +62,7 @@ type State = {
 @customElement(windowTagName)
 @connectStore(store)
 export class GemPanelWindowElement extends GemElement<State> {
+  @refobject windowRef: RefObject<HTMLElement>;
   window: Window;
 
   state: State = {
@@ -313,7 +314,12 @@ export class GemPanelWindowElement extends GemElement<State> {
           outline: none;
         }
       </style>
-      <div part="window ${isGrid ? 'cell-window' : 'fixed-window'}" tabindex="0" class="window">
+      <div
+        ref=${this.windowRef.ref}
+        part="window ${isGrid ? 'cell-window' : 'fixed-window'}"
+        tabindex="0"
+        class="window"
+      >
         ${isGrid
           ? ''
           : html`
@@ -376,5 +382,9 @@ export class GemPanelWindowElement extends GemElement<State> {
       </div>
       <gem-panel-handle .window=${this.window}></gem-panel-handle>
     `;
+  };
+
+  focus = () => {
+    this.windowRef.element?.focus();
   };
 }

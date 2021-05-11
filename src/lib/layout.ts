@@ -303,6 +303,10 @@ export class Layout implements LayoutOptional {
     window.dimension = [w < WINDOW_MIN_WIDTH || x < 0 ? originW : w, h < WINDOW_MIN_HEIGHT || y < 0 ? originH : h];
   }
 
+  activePanel(window: Window, panelName: string) {
+    window.changeCurrent(window.panels.findIndex((p) => p === panelName));
+  }
+
   focusWindow(window: Window) {
     if (window.isGridWindow()) return false;
     const maxZIndex = Math.max(...this.windows.filter((w) => w !== window).map((w) => w.zIndex));
@@ -366,7 +370,7 @@ export class Layout implements LayoutOptional {
     this.focusWindow(target);
   }
 
-  createGridWindow(window: Window, hoverWindow: Window, side: Side) {
+  convertGridWindow(window: Window, hoverWindow: Window, side: Side) {
     const areas = this.#findAreas(hoverWindow);
     const { rows, columns, width, height } = this.#findAreasBoundary(areas);
     const gridArea = this.#getNewGridArea();
@@ -444,9 +448,20 @@ export class Layout implements LayoutOptional {
     this.focusWindow(newWindow);
   }
 
-  openPanelInWindow(window: Window, panelName: string) {
-    window.changeCurrent(window.panels.push(panelName) - 1);
-    this.focusWindow(window);
+  openPanelInWindow(window: Window, panelName: string, side?: Side) {
+    if (side) {
+      if (window.isGridWindow()) {
+        const newWindow = new Window([panelName]);
+        this.windows.push(newWindow);
+        this.convertGridWindow(newWindow, window, side);
+      } else {
+        this.openHiddenPanel(panelName);
+      }
+      return;
+    } else {
+      window.changeCurrent(window.panels.push(panelName) - 1);
+      this.focusWindow(window);
+    }
   }
 
   closePanel(window: Window, panelName: string) {

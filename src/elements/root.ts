@@ -12,11 +12,13 @@ import {
   updateAppState,
   deletePanelFromWindow,
   deleteHiddenPanel,
+  activePanel,
 } from '../lib/store';
 import { theme, Theme } from '../lib/theme';
 import { isOutside, keyBy, exclude } from '../lib/utils';
 import { MenuItem, openContextMenu } from './menu';
 import { GemPanelWindowElement, windowTagName } from './window';
+import { Side } from './window-handle';
 import './menu';
 
 @customElement('gem-panel')
@@ -55,17 +57,22 @@ export class GemPanelElement extends GemElement {
   #save = () => this.#cacheAs();
 
   #queryPanel = (arg: string | Panel, panels: Panel[]) => {
-    const title = typeof arg === 'string' ? arg : arg.name;
-    return panels.find((e) => e.name === title);
+    const panelName = typeof arg === 'string' ? arg : arg.name;
+    return panels.find((e) => e.name === panelName);
   };
 
-  #queryWindow = (panel: Panel) => {
-    return store.layout.windows.find((w) => w.panels.includes(panel.name));
+  #queryWindow = (arg: string | Panel) => {
+    const panelName = typeof arg === 'string' ? arg : arg.name;
+    return store.layout.windows.find((w) => w.panels.includes(panelName));
+  };
+
+  #getAllWindowElement = () => {
+    return [...this.shadowRoot!.querySelectorAll<GemPanelWindowElement>(windowTagName)];
   };
 
   #cleanOutsideWindow = () => {
     const rect = this.getBoundingClientRect();
-    this.shadowRoot?.querySelectorAll<GemPanelWindowElement>(windowTagName).forEach((ele) => {
+    this.#getAllWindowElement().forEach((ele) => {
       if (ele.window.isGridWindow()) return;
       const targetRect = ele.getBoundingClientRect();
       if (isOutside(rect, targetRect)) {
@@ -177,16 +184,39 @@ export class GemPanelElement extends GemElement {
     return Object.values(exclude({ ...store.panels }, 'name', this.showPanels));
   }
 
-  openHiddenPanel(arg: string | Panel) {
-    const panel = this.#queryPanel(arg, this.hiddenPanels);
+  getWindow(arg: string | Panel) {
+    const panel = this.#queryPanel(arg, this.showPanels);
     if (!panel) return;
-    openHiddenPanel(panel.name);
+    return this.#queryWindow(panel);
   }
 
-  openPanelInWindow(arg: string | Panel, window: Window) {
-    const panel = this.#queryPanel(arg, this.hiddenPanels);
+  activePanel(arg: string | Panel) {
+    const panel = this.#queryPanel(arg, this.showPanels);
     if (!panel) return;
-    openPanelInWindow(window, panel.name);
+    const window = this.#queryWindow(arg);
+    if (!window) return;
+    activePanel(window, panel.name);
+    this.#getAllWindowElement()
+      .find((ele) => ele.window === window)
+      ?.focus();
+  }
+
+  openPanel(arg: string | Panel) {
+    const panel = this.#queryPanel(arg, this.hiddenPanels);
+    if (!panel) {
+      this.activePanel(arg);
+    } else {
+      openHiddenPanel(panel.name);
+    }
+  }
+
+  openPanelInWindow(arg: string | Panel, window: Window, side?: Side) {
+    const panel = this.#queryPanel(arg, this.hiddenPanels);
+    if (!panel) {
+      this.activePanel(arg);
+    } else {
+      openPanelInWindow(window, panel.name, side);
+    }
   }
 
   closePanel(arg: string | Panel) {

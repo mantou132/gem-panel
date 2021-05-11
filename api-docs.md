@@ -17,9 +17,11 @@
 
 | Method              | Type                                                                                  |
 | ------------------- | ------------------------------------------------------------------------------------- |
-| `openHiddenPanel`   | `(arg: string \| Panel): void`                                                        |
-| `openPanelInWindow` | `(arg: string \| Panel, window: Window): void`                                        |
+| `getWindow`         | `(arg: string \| Panel): Window`                                                      |
+| `activePanel`       | `(arg: string \| Panel): void`                                                        |
+| `openPanel`         | `(arg: string \| Panel): void`                                                        |
 | `closePanel`        | `(arg: string \| Panel): void`                                                        |
+| `openPanelInWindow` | `(arg: string \| Panel, window: Window, side?: Side): void`                           |
 | `addPanel`          | `(panel: Panel): void`                                                                |
 | `deletePanel`       | `(arg: string \| Panel): void`                                                        |
 | `updateAllPanel`    | `(): void`                                                                            |
