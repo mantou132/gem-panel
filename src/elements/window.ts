@@ -164,7 +164,9 @@ export class GemPanelWindowElement extends GemElement<State> {
     const { independentWindow } = this.state;
     if (independentWindow) {
       dropHandleWindow(independentWindow);
-      this.setState({ independentWindow: null });
+      setTimeout(() => {
+        this.setState({ independentWindow: null });
+      });
     }
   };
 
