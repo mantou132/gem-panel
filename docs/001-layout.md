@@ -43,6 +43,16 @@ const layout = new Layout([window1, window2, window3, window4], {
 // ...
 ```
 
+## `Engross` window
+
+Support for `engross` option when defining `Window`, it is forced that the window only contains a panel, and the window cannot be turned off.
+
+```ts
+// ...
+
+const window5 = new Window([panel7], { engross: true });
+```
+
 ## Cache layout
 
 Users can cache adjustments to panels, and it’s very simple, just add the `cache` attribute:
