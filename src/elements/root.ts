@@ -165,7 +165,7 @@ export class GemPanelElement extends GemElement {
             ></gem-panel-window>
           `,
       )}
-      <gem-panel-menu exportparts="menu,menu-separate,menu-item"></gem-panel-menu>
+      <gem-panel-menu exportparts="menu,menu-item-separator,menu-item,menu-submenu-mark"></gem-panel-menu>
     `;
   };
 

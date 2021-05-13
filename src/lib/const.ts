@@ -11,3 +11,4 @@ export const NEWWINDOW_FROM_PANEL_Y_OFFSET = 20;
 export const WINDOW_MIN_WIDTH = 200;
 export const WINDOW_MIN_HEIGHT = 100;
 export const DROP_DETECTION_DELAY = 250;
+export const MENU_Z_INDEX = 12345678;

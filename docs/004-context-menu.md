@@ -46,3 +46,7 @@ export class AppPanel1ContentElement extends GemElement {
   };
 }
 ```
+
+_Note1: Add a separator when the value of `text` is `---`, `MenuItem.menu` can add submenu._
+
+_Note2: The `z-index` value of the menu is `12345678`. If the `z-index` value of other elements is set larger than this value, the menu can be overwritten._

@@ -187,7 +187,6 @@ export class BridgeRootElement extends GemElement {
         .panels=${panels}
         .layout=${this.#getLayout()}
       >
-        <div slot="placeholder">123</div>
       </gem-panel>
     `;
   }
