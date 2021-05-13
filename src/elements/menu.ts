@@ -3,7 +3,7 @@ import { theme } from '../lib/theme';
 
 export interface MenuItem {
   text: string;
-  handle: () => void;
+  handle?: () => void;
 }
 
 type MenuState = {
@@ -81,13 +81,21 @@ export class GemPanelMenuElement extends GemElement {
           text-overflow: ellipsis;
           padding: 0.4em 1em;
         }
+        .separate {
+          opacity: 0.3;
+          background: currentColor;
+          height: 1px;
+          margin: 0 1em;
+        }
         .item:hover {
           color: ${theme.primaryColor};
         }
       </style>
       <div part="menu" class="menu">
-        ${menuStore.menus.map(
-          ({ text, handle }) => html`<div part="menu-item" class="item" @pointerdown=${handle}>${text}</div>`,
+        ${menuStore.menus.map(({ text, handle }) =>
+          text === '---'
+            ? html`<div part="menu-separate" class="separate"></div>`
+            : html`<div part="menu-item" class="item" @pointerdown=${handle}>${text}</div>`,
         )}
       </div>
     `;
