@@ -2,13 +2,8 @@ A custom element`<gem-panel>`, let you easily create layout similar to Adobe Aft
 
 ## Demo
 
-- [Hello](https://gem-panel.vercel.app/)
 - [Custom style](https://gem-panel-example-style.vercel.app/)
 - [Adobe Bridge simulation](https://gem-panel-example-bridge.vercel.app/)
-
-## Docs
-
-- [API](./api-docs.md)
 
 ## Features
 
