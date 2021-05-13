@@ -24,7 +24,7 @@
     "adobe-after-effects"
   ],
   "scripts": {
-    "docs": "npx gem-book docs -t '<gem-panel>'",
+    "docs": "npx gem-book docs -i logo.png -t '<gem-panel>'",
     "build:docs": "npm run docs -- --build",
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
