@@ -1,6 +1,6 @@
 {
   "name": "gem-panel",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "A custom element <gem-panel>, let you easily create layout similar to Adobe After Effects.",
   "main": "dist/index.js",
   "module": "index.js",
@@ -37,6 +37,10 @@
     "test:bs": "npm run build && karma start karma.bs.config.js --coverage"
   },
   "author": "mantou132",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mantou132/gem-panel.git"
+  },
   "license": "MIT",
   "dependencies": {
     "@mantou/gem": "^1.2.1"
