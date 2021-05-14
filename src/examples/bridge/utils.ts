@@ -3,7 +3,9 @@ import { Item, Type } from './store';
 export function getPathFolder(rootFolder: Item, path: string[]) {
   let folder = rootFolder;
   path.forEach((fragment) => {
-    folder = folder.content![fragment];
+    if (folder.content) {
+      folder = folder.content[fragment];
+    }
   });
   return folder;
 }
@@ -16,8 +18,8 @@ export function getImage(item: Item, size?: number) {
     file: '666',
   };
   if (type === 'image') {
-    let w = width!;
-    let h = height!;
+    let w = width as number;
+    let h = height as number;
     if (size) {
       const s = Math.max(w, h) / size;
       [w, h] = [Math.floor(w / s), Math.floor(h / s)];

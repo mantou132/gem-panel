@@ -31,7 +31,7 @@ export class BridgePanelFilterElement extends GemElement {
           name: 'landscape',
           filter: (item: Item) => {
             if (item.type === 'image') {
-              return item.width! > item.height!;
+              return (item.width as number) > (item.height as number);
             }
           },
         },
@@ -39,7 +39,7 @@ export class BridgePanelFilterElement extends GemElement {
           name: 'portrait',
           filter: (item: Item) => {
             if (item.type === 'image') {
-              return item.width! < item.height!;
+              return (item.width as number) < (item.height as number);
             }
           },
         },

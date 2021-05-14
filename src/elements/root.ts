@@ -67,7 +67,7 @@ export class GemPanelElement extends GemElement {
   };
 
   #getAllWindowElement = () => {
-    return [...this.shadowRoot!.querySelectorAll<GemPanelWindowElement>(windowTagName)];
+    return [...(this.shadowRoot as ShadowRoot).querySelectorAll<GemPanelWindowElement>(windowTagName)];
   };
 
   #cleanOutsideWindow = () => {
