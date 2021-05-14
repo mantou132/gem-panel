@@ -1,7 +1,8 @@
-import { html, connectStore, customElement, GemElement } from '@mantou/gem';
+import { html, connectStore, customElement, GemElement, refobject, RefObject } from '@mantou/gem';
 
 import { MenuItem, GemPanelElement, Layout, Panel, Window, theme } from '../../../';
 import { bridgeStore, layoutModes, updateLayoutMode } from '../store';
+import { ContextMenuDetail } from '../base-element';
 
 import './navigation';
 
@@ -65,7 +66,7 @@ const preview = new Panel('preview', {
 });
 
 const folders = new Panel('folders', {
-  title: 'preview',
+  title: 'folders',
   getMenu,
   async getContent() {
     await import('./panel-folders');
@@ -76,10 +77,6 @@ const folders = new Panel('folders', {
 const libraries = new Panel('libraries', {
   title: 'libraries',
   getMenu,
-  async getContent() {
-    await import('./panel-libraries');
-    return html`<bridge-panel-libraries></bridge-panel-libraries>`;
-  },
 });
 
 const panels = [favorites, content, filter, metadata, preview, folders, libraries];
@@ -87,6 +84,8 @@ const panels = [favorites, content, filter, metadata, preview, folders, librarie
 @connectStore(bridgeStore)
 @customElement('bridge-root')
 export class BridgeRootElement extends GemElement {
+  @refobject panelElementRef: RefObject<GemPanelElement>;
+
   #essentialsLayout = (() => {
     const w1 = new Window([favorites], { gridArea: 'favorites' });
     const w2 = new Window([content], { gridArea: 'content' });
@@ -131,6 +130,16 @@ export class BridgeRootElement extends GemElement {
     } else {
       return this.#librariesLayout;
     }
+  };
+
+  mounted = () => {
+    this.addEventListener('contextmenu', (evt) => {
+      evt.preventDefault();
+    });
+    this.addEventListener('open-context-menu', ({ detail }: CustomEvent<ContextMenuDetail>) => {
+      const { activeElement, x, y, menu } = detail;
+      this.panelElementRef.element?.openContextMenu(activeElement, x, y, menu);
+    });
   };
 
   render() {
@@ -182,8 +191,9 @@ export class BridgeRootElement extends GemElement {
       </header>
       <bridge-navigation></bridge-navigation>
       <gem-panel
-        .cache=${false}
-        .cacheVersion=${`${bridgeStore.mode}-1`}
+        ref=${this.panelElementRef.ref}
+        .cache=${true}
+        .cacheVersion=${`${bridgeStore.mode}-3`}
         .panels=${panels}
         .layout=${this.#getLayout()}
       >

@@ -1,5 +1,6 @@
 import { connectStore, customElement, GemElement, html } from '@mantou/gem';
 import { bridgeStore } from '../store';
+import { getImage } from '../utils';
 
 @connectStore(bridgeStore)
 @customElement('bridge-panel-preview')
@@ -29,7 +30,7 @@ export class BridgePanelPreviewElement extends GemElement {
           padding: 0.2em 1em;
         }
       </style>
-      <img src=${item.src || `https://via.placeholder.com/60x60?text=${item.type}`} />
+      <img src=${getImage(item)} />
       <div class="title">${item.filename}</div>
     `;
   }

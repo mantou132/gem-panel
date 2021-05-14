@@ -5,6 +5,6 @@ import { bridgeStore } from '../store';
 @customElement('bridge-panel-favorites')
 export class BridgePanelFavoritesElement extends GemElement {
   render() {
-    return html``;
+    return html`${[...bridgeStore.favorites].map((item) => html`<div>${item.filename}</div>`)}`;
   }
 }

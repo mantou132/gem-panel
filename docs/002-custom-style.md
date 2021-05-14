@@ -48,7 +48,7 @@ html`
 
 ## Parts
 
-`<gem-panel>` is implemented using WebCompontents, and internal elements all use ShadowDOM, so ordinary css cannot be used to customize the internal style of `<gem-panel>`.
+`<gem-panel>` is implemented using WebCompontents, and internal elements all use [ShadowDOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM), so ordinary css cannot be used to customize the internal style of `<gem-panel>`.
 
 But `<gem-panel>` exports many parts, which can be styled using css part:
 

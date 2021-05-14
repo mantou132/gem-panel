@@ -1,19 +1,13 @@
 import { customElement, GemElement, html, property } from '@mantou/gem';
-import { Item, Type } from '../store';
-
-const colorMap: { [key in Type]: string } = {
-  image: 'ccc',
-  folder: '74d0fb',
-  file: '666',
-};
+import { Item } from '../store';
+import { getImage } from '../utils';
 
 @customElement('bridge-thumbnail')
 export class BridgeThumbnailElement extends GemElement {
   @property data: Item;
 
   render() {
-    const { filename, src, type } = this.data;
-    const color = colorMap[type];
+    const { filename } = this.data;
     return html`
       <style>
         :host {
@@ -30,7 +24,7 @@ export class BridgeThumbnailElement extends GemElement {
           padding: 0.2em 1em;
         }
       </style>
-      <img src=${src || `https://via.placeholder.com/60x60/${color}?text=${type}`} />
+      <img src=${getImage(this.data, 100)} />
       <div class="title">${filename}</div>
     `;
   }

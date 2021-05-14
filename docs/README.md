@@ -1,6 +1,6 @@
 # Introduction
 
-`<gem-panel>` is a custom element developed using Webcomponents. It can quickly create a user interface similar to Adobe After Effects -- an interface that allows users to freely organize panels.
+`<gem-panel>` is a custom element developed using [gem](https://github.com/mantou132/gem). It can quickly create a user interface similar to Adobe After Effects -- an interface that allows users to freely organize panels.
 
 ![screenshot](https://raw.githubusercontent.com/mantou132/gem-panel/master/screenshots/style.png)
 

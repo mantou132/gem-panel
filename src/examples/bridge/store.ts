@@ -1,4 +1,5 @@
 import { createStore, randomStr, updateStore } from '@mantou/gem';
+import { getPathFolder } from './utils';
 
 export const layoutModes = ['essentials', 'libraries'] as const;
 export type LayoutMode = typeof layoutModes[number];
@@ -7,46 +8,37 @@ const types = ['image', 'file', 'folder'] as const;
 export type Type = typeof types[number];
 
 export type Item = {
+  parent: Item | null;
   filename: string;
   type: Type;
   modifiedTime: number;
   width?: number;
   height?: number;
-  src?: string;
   content?: { [key: string]: Item };
 };
 
-type Filter = {
-  type?: Type;
-  width?: number;
-  height?: number;
-};
+export type Filter = (item: Item) => boolean | undefined;
 
 type BridgeStore = {
   selection: Set<Item>;
+  favorites: Set<Item>;
   path: string[];
-  filter: Filter;
+  filters: Set<Filter>;
   mode: LayoutMode;
   content?: { [key: string]: Item };
 };
 
 export const bridgeStore = createStore<BridgeStore>({
+  favorites: new Set(),
   selection: new Set(),
   path: [],
-  filter: {},
-  mode: 'essentials',
+  filters: new Set(),
+  mode: (localStorage.getItem('mode') as LayoutMode) || 'essentials',
   content: undefined,
 });
 
-export function getCurrentFolder() {
-  let folder = (bridgeStore as unknown) as Item;
-  bridgeStore.path.forEach((fragment) => {
-    folder = folder.content![fragment];
-  });
-  return folder;
-}
-
 export function updateLayoutMode(mode: LayoutMode) {
+  localStorage.setItem('mode', mode);
   updateStore(bridgeStore, { mode });
 }
 
@@ -54,11 +46,25 @@ export function updateSelection(selection: Item[]) {
   updateStore(bridgeStore, { selection: new Set(selection) });
 }
 
-export function updateFilter(filter: Filter) {
-  updateStore(bridgeStore, { filter: { ...bridgeStore.filter, ...filter } });
+export function toggleFilter(filter: Filter) {
+  if (bridgeStore.filters.has(filter)) {
+    bridgeStore.filters.delete(filter);
+  } else {
+    bridgeStore.filters.add(filter);
+  }
+  updateStore(bridgeStore);
 }
 
-export function updatePath(path: string[]) {
+export function toggleFavorite(item: Item) {
+  if (bridgeStore.favorites.has(item)) {
+    bridgeStore.favorites.delete(item);
+  } else {
+    bridgeStore.favorites.add(item);
+  }
+  updateStore(bridgeStore);
+}
+
+export function fetchFolderContent(folder: Item) {
   const fetchContent = () => {
     const content: { [key: string]: Item } = {};
     Array(Math.ceil(Math.random() * 100))
@@ -69,21 +75,25 @@ export function updatePath(path: string[]) {
         const width = type === 'image' ? 300 + Math.floor(Math.random() * 1000) : undefined;
         const height = type === 'image' ? 300 + Math.floor(Math.random() * 1000) : undefined;
         const modifiedTime = Date.now() - Math.floor(Math.random() * 1000 * 1000 * 60 * 60 * 24);
-        const src = type === 'image' ? `https://via.placeholder.com/${width}x${height}` : undefined;
         content[filename] = {
+          parent: folder,
           filename,
           type,
           width,
           height,
           modifiedTime,
-          src,
         } as Item;
       });
     return content;
   };
-  const folder = getCurrentFolder();
   if (!folder.content) {
     folder.content = fetchContent();
+    updateStore(bridgeStore);
   }
+}
+
+export function updatePath(path: string[]) {
+  const folder = getPathFolder((bridgeStore as unknown) as Item, path);
+  fetchFolderContent(folder);
   updateStore(bridgeStore, { path });
 }

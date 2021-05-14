@@ -1,6 +1,6 @@
 # Layout
 
-`<gem-panel>` uses css grid for layout, and the initial layout uses the same grid properties as css for configuration:
+`<gem-panel>` uses [css grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) for layout, and the initial layout uses the same grid properties as css for configuration:
 
 ```ts
 // ...
