@@ -4,6 +4,8 @@ import { theme } from '../lib/theme';
 
 export interface MenuItem {
   text: string;
+  disabled?: boolean;
+  selected?: boolean;
   handle?: () => void;
   menu?: MenuItem[];
 }
@@ -83,7 +85,7 @@ export class GemPanelMenuElement extends GemElement {
           text-transform: capitalize;
           font-size: 0.85em;
         }
-        .menu {
+        [part~='menu'] {
           position: absolute;
           gap: 1px;
           background: ${theme.backgroundColor};
@@ -93,25 +95,34 @@ export class GemPanelMenuElement extends GemElement {
           border-radius: 4px;
           overflow: auto;
         }
-        .item {
+        [part~='menu-item'] {
           line-height: 1.5;
+          padding: 0.4em 1em;
+          display: flex;
+          gap: 1em;
+        }
+        [part~='menu-item'] span {
+          flex-grow: 1;
+          flex-shrink: 1;
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
-          padding: 0.4em 1em;
-          display: flex;
-          justify-content: space-between;
         }
-        .item:hover,
+        [part~='menu-disabled-item'] {
+          opacity: 0.5;
+        }
+        [part~='menu-item']:not([part~='menu-disabled-item']):hover,
         .open {
           color: ${theme.primaryColor};
         }
-        .submenu-mark {
+        [part~='menu-selected-item-mark'],
+        [part~='menu-submenu-mark'] {
+          flex-shrink: 0;
           position: relative;
           width: 1em;
         }
-        .submenu-mark::before,
-        .submenu-mark::after {
+        [part~='menu-submenu-mark']::before,
+        [part~='menu-submenu-mark']::after {
           position: absolute;
           content: '';
           width: 80%;
@@ -121,13 +132,33 @@ export class GemPanelMenuElement extends GemElement {
           background: currentColor;
           transform-origin: center right;
         }
-        .submenu-mark::before {
+        [part~='menu-submenu-mark']::before {
           transform: translateY(-50%) scale(0.8) rotate(-45deg);
         }
-        .submenu-mark::after {
+        [part~='menu-submenu-mark']::after {
           transform: translateY(-50%) scale(0.8) rotate(45deg);
         }
-        .separator {
+        [part~='menu-selected-item-mark']::before,
+        [part~='menu-selected-item-mark']::after {
+          position: absolute;
+          content: '';
+          height: 2px;
+          border-radius: 1em;
+          background: currentColor;
+          bottom: 0;
+          left: 25%;
+        }
+        [part~='menu-selected-item-mark']::before {
+          width: 60%;
+          transform: translate(-70%, -200%) scale(0.8) rotate(45deg);
+          transform-origin: bottom right;
+        }
+        [part~='menu-selected-item-mark']::after {
+          width: 100%;
+          transform: translate(20%, -200%) scale(0.8) rotate(-45deg);
+          transform-origin: bottom left;
+        }
+        [part~='menu-item-separator'] {
           opacity: 0.3;
           background: currentColor;
           height: 1px;
@@ -138,7 +169,6 @@ export class GemPanelMenuElement extends GemElement {
         ({ x, y, menu }, index) => html`
           <div
             part="menu"
-            class="menu"
             style=${styleMap({
               width: '200px',
               maxHeight: `calc(100vh - ${y}px)`,
@@ -146,17 +176,23 @@ export class GemPanelMenuElement extends GemElement {
               left: `min(${x}px, calc(100vw - 200px))`,
             })}
           >
-            ${menu.map(({ text, handle, menu: subMenu }) =>
+            ${menu.map(({ text, handle, disabled, selected, menu: subMenu }) =>
               text === '---'
-                ? html`<div part="menu-item-separator" class="separator"></div>`
+                ? html`<div part="menu-item-separator"></div>`
                 : html`
                     <div
-                      part="menu-item"
-                      class=${`item ${subMenu && subMenu === menuStack[index + 1]?.menu ? 'open' : ''}`}
-                      @pointerover=${(evt: PointerEvent) => this.#enterMenu(evt, subMenu || menu)}
-                      @pointerdown=${handle || this.stopPropagation}
+                      part=${`
+                        menu-item
+                        ${disabled ? 'menu-disabled-item' : ''}
+                        ${selected ? 'menu-selected-item' : ''}
+                      `}
+                      class=${subMenu && subMenu === menuStack[index + 1]?.menu ? 'open' : ''}
+                      @pointerenter=${(evt: PointerEvent) => this.#enterMenu(evt, subMenu || menu)}
+                      @pointerdown=${disabled || !handle ? this.stopPropagation : handle}
                     >
-                      ${text}${subMenu ? html`<div part="menu-submenu-mark" class="submenu-mark"></div>` : ''}
+                      <span>${text}</span>
+                      ${subMenu ? html`<div part="menu-submenu-mark"></div>` : ''}
+                      ${selected ? html`<div part="menu-selected-item-mark"></div>` : ''}
                     </div>
                   `,
             )}
