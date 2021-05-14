@@ -88,27 +88,25 @@ export class GemPanelElement extends GemElement {
 
   mounted = () => {
     this.#onResize();
+
     this.effect(
-      () => {
+      ([newCacheVersion], old) => {
+        const oldCacheVersion = old?.[0];
+        if (oldCacheVersion && oldCacheVersion !== newCacheVersion) {
+          this.#cacheAs(oldCacheVersion);
+        }
         updateAppState({
           layout: this.layout,
           panels: keyBy(this.panels || [], 'name'),
         });
+        this.#loadCache();
       },
-      () => [this.layout, this.panels],
+      () => [this.cacheVersion, this.layout, this.panels],
     );
+
     this.effect(
       () => updateTheme(theme, this.theme || {}),
       () => [this.theme],
-    );
-    this.effect(
-      (_, old) => {
-        if (old) {
-          this.#cacheAs(old[0]);
-        }
-        this.#loadCache();
-      },
-      () => [this.cacheVersion],
     );
 
     window.addEventListener('unload', this.#save);
