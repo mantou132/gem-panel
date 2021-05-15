@@ -86,6 +86,11 @@ export class GemPanelElement extends GemElement {
     resizeObserver.observe(this);
   };
 
+  #renderPanelSlot = (window: Window) => {
+    const panel = store.panels[window.panels[window.current]];
+    return html`<slot slot=${panel.name} name=${panel.name}></slot>`;
+  };
+
   mounted = () => {
     this.#onResize();
 
@@ -160,7 +165,9 @@ export class GemPanelElement extends GemElement {
                 panel-loader
               "
               .window=${window}
-            ></gem-panel-window>
+            >
+              ${this.#renderPanelSlot(window)}
+            </gem-panel-window>
           `,
       )}
       <gem-panel-menu

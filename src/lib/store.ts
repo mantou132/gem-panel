@@ -65,6 +65,12 @@ export function loadContentInPanel(panelName: string, content: PanelContent) {
   updateStore(store);
 }
 
+export function unLoadContentInPanel(panelName: string) {
+  const panel = store.panels[panelName];
+  if (!panel) return;
+  delete panel.detail.content;
+}
+
 export function independentPanel(window: Window, panelName: string, rect: [number, number, number, number]) {
   const newWindow = store.layout.createIndependentWindow(window, panelName, rect);
   updateStore(store);

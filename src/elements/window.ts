@@ -3,7 +3,7 @@ import { PanEventDetail } from '@mantou/gem/elements/gesture';
 import '@mantou/gem/elements/gesture';
 
 import { Window } from '../lib/layout';
-import { GetPanelContent } from '../lib/panel';
+import { GetPanelContent, Panel } from '../lib/panel';
 import {
   cancelHandleWindow,
   dropHandleWindow,
@@ -16,6 +16,7 @@ import {
   updateWindowZIndex,
   independentPanel,
   loadContentInPanel,
+  unLoadContentInPanel,
 } from '../lib/store';
 import { GemPanelTitleElement } from './panel-title';
 import { distance } from '../lib/utils';
@@ -42,6 +43,23 @@ function execGetContent(fn: GetPanelContent | undefined, panelName: string) {
       fn(panelName).then((result) => loadContentInPanel(panelName, result)),
     );
   }
+}
+
+const renderContentWeakMap = new WeakMap<HTMLSlotElement, HTMLDivElement>();
+export function renderContent(
+  panelName: string,
+  render: (contentMountElement: HTMLDivElement) => void,
+  gemPanelRootElement: ParentNode = document,
+) {
+  const contentMountElement = document.createElement('div');
+  contentMountElement.setAttribute('slot', panelName);
+  contentMountElement.setAttribute('style', 'display: contents');
+  render(contentMountElement);
+  gemPanelRootElement.querySelector<any>('gem-panel').append(contentMountElement);
+  const slot = document.createElement('slot');
+  slot.setAttribute('name', panelName);
+  renderContentWeakMap.set(slot, contentMountElement);
+  return slot;
 }
 
 export const windowTagName = 'gem-panel-window';
@@ -205,16 +223,37 @@ export class GemPanelWindowElement extends GemElement<State> {
     updateWindowZIndex(this.window);
   };
 
+  #removeSlotAssignContent = (panel: Panel | undefined) => {
+    if (panel) {
+      const { content, name, getContent } = panel;
+      if (!getContent) return;
+
+      const slotAssignContent = renderContentWeakMap.get(content as any);
+      if (slotAssignContent) {
+        unLoadContentInPanel(name);
+        // The next rendering is to use `getContent`
+        getContentWeakMap.delete(getContent);
+        slotAssignContent.remove();
+      }
+    }
+  };
+
   mounted = () => {
     this.addEventListener('focus', this.#onFocusWindow);
     this.addEventListener('pointermove', this.#onMove);
     this.addEventListener('pointerup', this.#onMoveEnd);
     this.addEventListener('pointercancel', this.#onMoveEnd);
     this.effect(
-      ([currentPanel]) => {
-        if (currentPanel && !currentPanel.content) {
-          execGetContent(currentPanel.getContent, currentPanel.name);
+      ([currentPanel], oldDepValues) => {
+        if (!currentPanel) return;
+        const { content, getContent, name } = currentPanel;
+        if (!content) {
+          execGetContent(getContent, name);
         }
+        this.#removeSlotAssignContent(oldDepValues?.[0]);
+        return () => {
+          this.#removeSlotAssignContent(currentPanel);
+        };
       },
       () => {
         const { panels, current } = this.window;

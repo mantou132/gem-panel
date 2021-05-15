@@ -27,10 +27,10 @@ import { Layout, Panel, Window } from 'gem-panel';
 
 const panel1 = new Panel('p1', { title: 'p1 title', content: `p1 content` });
 const panel2 = new Panel('p2', { title: 'p2 title' });
-const panel3 = new Panel('p3', { title: 'p3 title', content: `<p3-panel></p3-panel>` });
-const panel4 = new Panel('p4', { title: 'p4 title', content: `<p4-panel></p4-panel>` });
-const panel5 = new Panel('p5', { title: 'p5 title', content: `<p5-panel></p5-panel>` });
-const panel6 = new Panel('p6', { title: 'p6 title', content: `<p6-panel></p6-panel>` });
+const panel3 = new Panel('p3', { title: 'p3 title', content: `p3-content` });
+const panel4 = new Panel('p4', { title: 'p4 title', content: `p4-content` });
+const panel5 = new Panel('p5', { title: 'p5 title', content: `p5-content` });
+const panel6 = new Panel('p6', { title: 'p6 title', content: `p6-content` });
 
 const panels = [panel1, panel2, panel3, panel4, panel5, panel6];
 ```
