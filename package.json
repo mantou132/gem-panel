@@ -1,6 +1,6 @@
 {
   "name": "gem-panel",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A custom element <gem-panel>, let you easily create layout similar to Adobe After Effects.",
   "main": "dist/index.js",
   "module": "index.js",
