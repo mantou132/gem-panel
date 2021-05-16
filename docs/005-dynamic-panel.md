@@ -1,6 +1,6 @@
 # Dynamic panel
 
-Some complex webapps may have a plug-in system. They will dynamically load panels. The API exposed by `<gem-panel>` facilitates this.
+Some complex webapps may have a plug-in system, they will dynamically load panels, the API exposed by `<gem-panel>` facilitates this.
 
 ```ts
 // ...

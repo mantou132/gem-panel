@@ -1,6 +1,10 @@
 # Layout
 
-`<gem-panel>` uses [css grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) for layout, and the initial layout uses the same grid properties as css for configuration:
+`<gem-panel>` organizes UI through panel and window(also called panel group), after specifying panel and window, `<gem-panel>` will automatically layout according to the number of windows, can customize the layout through some options, and can cache the layout.
+
+## Window in grid
+
+`<gem-panel>` uses [CSS grid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout) for layout, and the initial layout uses the same grid properties as CSS for configuration:
 
 ```ts
 // ...
@@ -19,6 +23,8 @@ const layout = new Layout([window1, window2, window3], {
   gridTemplateRows: '3fr 1fr 3fr',
 });
 ```
+
+## Separate window
 
 When the `position` or `dimension` of the window are specified, the window will be displayed as a separate window from the grid.
 

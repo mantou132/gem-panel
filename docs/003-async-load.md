@@ -1,6 +1,6 @@
 # Async load
 
-In a complex WebApp, there may be many panels, and the panel itself may be more complicated, so `<gem-panel>` allows asynchronous loading of panel content, which will be loaded asynchronously when the panel is displayed for the first time, which can greatly improve the WebApp Performance:
+In a complex WebApp, there may be many panels, and the panel itself may be more complicated, so `<gem-panel>` allows asynchronous loading of panel content, which will be loaded asynchronously when the panel is displayed for the first time, which can greatly improve the WebApp performance:
 
 ```ts
 // ...

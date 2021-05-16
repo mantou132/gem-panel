@@ -1,10 +1,10 @@
 # Custom style
 
-`<gem-panel>` can use js and css to customize styles in various aspects.
+`<gem-panel>` can use JS and CSS to customize styles in various aspects.
 
 ## Theme
 
-Although the theme of `<gem-panel>` is implemented with css custom properties, it is configured with js, which has the advantage of type detection and can avoid the duplication of property names.
+Although the theme of `<gem-panel>` is implemented with [CSS custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/--*), it is configured with js, which has the advantage of type detection and can avoid the duplication of property names.
 
 ```ts
 import { Theme } from 'gem-panel';
@@ -48,11 +48,11 @@ html`
 
 ## Parts
 
-`<gem-panel>` is implemented using WebCompontents, and internal elements all use [ShadowDOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM), so ordinary css cannot be used to customize the internal style of `<gem-panel>`.
+`<gem-panel>` is implemented using WebCompontents, and internal elements all use [ShadowDOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM), so ordinary CSS cannot be used to customize the internal style of `<gem-panel>`.
 
-But `<gem-panel>` exports many parts, which can be styled using css part:
+But `<gem-panel>` exports many parts, which can be styled using CSS part:
 
-```ts 5-7
+```ts 5
 // ...
 
 html`
