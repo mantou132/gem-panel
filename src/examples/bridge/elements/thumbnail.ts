@@ -24,7 +24,7 @@ export class BridgeThumbnailElement extends GemElement {
           padding: 0.2em 1em;
         }
       </style>
-      <img src=${getImage(this.data, 100)} />
+      <img loading="lazy" src=${getImage(this.data, 100)} />
       <div class="title">${filename}</div>
     `;
   }

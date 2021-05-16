@@ -1,4 +1,4 @@
-import { connectStore, customElement, GemElement, html } from '@mantou/gem';
+import { connectStore, customElement, GemElement, html, repeat } from '@mantou/gem';
 import { bridgeStore } from '../store';
 import { getImage } from '../utils';
 
@@ -8,6 +8,8 @@ export class BridgePanelPreviewElement extends GemElement {
   render() {
     const [item] = [...bridgeStore.selection];
     if (!item) return null;
+    const src = getImage(item);
+
     return html`
       <style>
         :host {
@@ -30,7 +32,11 @@ export class BridgePanelPreviewElement extends GemElement {
           padding: 0.2em 1em;
         }
       </style>
-      <img src=${getImage(item)} />
+      ${repeat(
+        [src],
+        (src) => src,
+        () => html`<img alt=${item.filename} src=${src} />`,
+      )}
       <div class="title">${item.filename}</div>
     `;
   }

@@ -55,6 +55,11 @@ export function toggleFilter(filter: Filter) {
   updateStore(bridgeStore);
 }
 
+export function removeAllFilter() {
+  bridgeStore.filters.clear();
+  updateStore(bridgeStore);
+}
+
 export function toggleFavorite(item: Item) {
   if (bridgeStore.favorites.has(item)) {
     bridgeStore.favorites.delete(item);

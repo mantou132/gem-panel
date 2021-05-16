@@ -1,11 +1,12 @@
-import { connectStore, customElement, GemElement, html } from '@mantou/gem';
-import { bridgeStore, Item, Filter, toggleFilter } from '../store';
+import { connectStore, customElement, html } from '@mantou/gem';
+import { BridgeBaseElement } from '../base-element';
+import { bridgeStore, Item, Filter, toggleFilter, removeAllFilter } from '../store';
 
 type Filters = { name: string; filters: { name: string; filter: Filter }[] }[];
 
 @connectStore(bridgeStore)
 @customElement('bridge-panel-filter')
-export class BridgePanelFilterElement extends GemElement {
+export class BridgePanelFilterElement extends BridgeBaseElement {
   static filters: Filters = [
     {
       name: 'file type',
@@ -51,8 +52,32 @@ export class BridgePanelFilterElement extends GemElement {
     toggleFilter(filter);
   };
 
+  #onContextMenu = ({ x, y }: MouseEvent) => {
+    this.openContextMenu({
+      activeElement: this,
+      x,
+      y,
+      menu: [
+        {
+          text: 'clean all filter',
+          handle: removeAllFilter,
+        },
+      ],
+    });
+  };
+
+  mounted = () => {
+    this.addEventListener('contextmenu', this.#onContextMenu);
+  };
+
   render() {
     return html`
+      <style>
+        :host {
+          display: block;
+          min-height: 100%;
+        }
+      </style>
       ${BridgePanelFilterElement.filters.map(
         (filterGroup) => html`
           <details>
