@@ -1,6 +1,6 @@
 # Framework integration
 
-`<gem-panel>` [shadowDOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM), so it is most appropriate to use custom elements for the panel content. e.g:
+`<gem-panel>` use [ShadowDOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM), so it is most appropriate to use custom elements for the panel content. e.g:
 
 ```ts
 const panel = new Panel('id', {

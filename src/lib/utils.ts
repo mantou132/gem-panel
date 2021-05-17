@@ -1,7 +1,3 @@
-export default function add(a: number, b: number) {
-  return a + b;
-}
-
 export function getNewFocusElementIndex(arr: any[], currentFocusIndex: number, deleteIndex: number) {
   if (arr.length === 1) return -1;
   if (deleteIndex >= currentFocusIndex) {
@@ -20,15 +16,17 @@ export function distance(x: number, y: number) {
   return Math.sqrt(x ** 2 + y ** 2);
 }
 
-export function removeItem(arr: any[], item: any) {
+export function removeItem<T>(arr: T[], item: T) {
   const index = arr.findIndex((e) => e === item);
   arr.splice(index, 1);
+  return arr;
 }
 
-export function swapPosition(arr: any[], item2: any, item1: any) {
+export function swapPosition<T>(arr: T[], item2: T, item1: T) {
   const index1 = arr.findIndex((e) => e === item1);
   const index2 = arr.findIndex((e) => e === item2);
   [arr[index1], arr[index2]] = [item2, item1];
+  return arr;
 }
 
 export function detectPosition([ox, oy, w, h]: number[], [px, py]: [number, number], border: number) {
@@ -49,19 +47,20 @@ export function findLimintPosition(arr: number[], limit: number) {
   let total = 0;
   for (let index = 0; index < arr.length; index++) {
     total += arr[index];
-    if (total > limit) {
+    if (total >= limit) {
       return { index, margin: total - limit };
     }
   }
   return { index: arr.length, margin: total - limit };
 }
 
-export function isOutside(rect: DOMRect, target: DOMRect) {
+type Rect = { x: number; y: number; width: number; height: number };
+export function isOutside(rect: Rect, target: Rect) {
   if (
-    target.x > rect.x + rect.width ||
-    target.y > rect.y + rect.height ||
-    rect.x > target.x + target.width ||
-    rect.y > target.y + target.height
+    target.x >= rect.x + rect.width ||
+    target.y >= rect.y + rect.height ||
+    rect.x >= target.x + target.width ||
+    rect.y >= target.y + target.height
   ) {
     return true;
   }

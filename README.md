@@ -14,6 +14,7 @@ A custom element`<gem-panel>`, let you easily create layout similar to Adobe Aft
 - Cache layout
 - Custom style, [screenshot](./screenshots/style.png)
 - Async load panel content
+- Can use in any framework
 - Typescript support
 - Lightweight, ~20kb(br)
 
