@@ -1,5 +1,6 @@
 import { html, GemElement, customElement, connectStore } from '@mantou/gem';
 import { Window } from '../lib/layout';
+import { Panel } from '../lib/panel';
 import { closePanel, closeWindow, store } from '../lib/store';
 import { MenuItem, openContextMenu } from './menu';
 
@@ -20,10 +21,14 @@ export class GemPanelTitleElement extends GemElement {
     },
   ];
 
+  get panel(): Panel | undefined {
+    return store.panels[this.panelName];
+  }
+
   // https://bugs.chromium.org/p/chromium/issues/detail?id=1206640
   #pointerDownHandle = (evt: MouseEvent) => {
     evt.stopPropagation();
-    const panel = store.panels[this.panelName];
+    const panel = this.panel;
     if (!panel) return;
     setTimeout(async () => {
       const activeElement = (this.getRootNode() as ShadowRoot)?.activeElement;
@@ -79,8 +84,10 @@ export class GemPanelTitleElement extends GemElement {
           width: 10em;
         }
       </style>
-      ${store.panels[this.panelName]?.title || 'No title'}
-      <span part="panel-button" class="panel-button" @pointerdown=${this.#pointerDownHandle}></span>
+      ${this.panel?.title || 'No title'}
+      ${this.panel?.getMenu !== null
+        ? html`<span part="panel-button" class="panel-button" @pointerdown=${this.#pointerDownHandle}></span>`
+        : ''}
     `;
   };
 }

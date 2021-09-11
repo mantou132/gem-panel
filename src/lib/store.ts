@@ -61,14 +61,14 @@ export function openPanelInWindow(window: Window, panelName: string, side?: Side
 export function loadContentInPanel(panelName: string, content: PanelContent) {
   const panel = store.panels[panelName];
   if (!panel) return;
-  panel.detail.content = content;
+  panel.content = content;
   updateStore(store);
 }
 
 export function unLoadContentInPanel(panelName: string) {
   const panel = store.panels[panelName];
   if (!panel) return;
-  delete panel.detail.content;
+  delete panel.content;
 }
 
 export function independentPanel(window: Window, panelName: string, rect: [number, number, number, number]) {

@@ -10,34 +10,20 @@ interface PanelDetail {
   content?: PanelContent;
   placeholder?: PanelContent;
   getContent?: GetPanelContent;
-  getMenu?: (window: Window, panel: Panel, defaultMenus: MenuItem[]) => Promise<MenuItem[]>;
+  // null: disable menu button
+  getMenu?: null | ((window: Window, panel: Panel, defaultMenus: MenuItem[]) => Promise<MenuItem[]>);
 }
-export class Panel {
+
+export class Panel implements PanelDetail {
   name: string;
-  detail: PanelDetail;
-
-  get title() {
-    return this.detail.title;
-  }
-
-  get content() {
-    return this.detail.content;
-  }
-
-  get placeholder() {
-    return this.detail.placeholder;
-  }
-
-  get getContent() {
-    return this.detail.getContent;
-  }
-
-  get getMenu() {
-    return this.detail.getMenu;
-  }
+  title?: string;
+  content?: PanelContent;
+  placeholder?: PanelContent;
+  getContent?: GetPanelContent;
+  getMenu?: null | ((window: Window, panel: Panel, defaultMenus: MenuItem[]) => Promise<MenuItem[]>);
 
   constructor(name: string, detail: PanelDetail) {
     this.name = name;
-    this.detail = detail;
+    Object.assign(this, detail);
   }
 }
