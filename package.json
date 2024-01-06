@@ -29,10 +29,10 @@
     "lint": "tsc --noEmit && eslint --ext .ts --fix src/",
     "clean": "node -e \"fs.readdirSync('src').map(dir => require('rimraf').sync(dir))\"",
     "build:module": "npm run clean && tsc",
-    "build:dist": "rimraf dist && webpack --mode=production --config webpack.config.dist.js",
+    "build:dist": "rimraf dist && NODE_OPTIONS=--openssl-legacy-provider webpack --mode=production --config webpack.config.dist.js",
     "build": "npm run build:module && npm run build:dist",
     "prepare": "npm run lint && npm run build",
-    "example": "webpack serve --mode=development",
+    "example": "NODE_OPTIONS=--openssl-legacy-provider webpack serve --mode=development",
     "test": "npm run build && karma start --coverage",
     "test:bs": "npm run build && karma start karma.bs.config.js --coverage"
   },
